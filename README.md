@@ -1,3 +1,3 @@
 # cka-exam-prep
 
-test
+[test]()
