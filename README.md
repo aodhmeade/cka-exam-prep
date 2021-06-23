@@ -28,10 +28,10 @@
 | Exam Domain Notes                                      | Weight |
 |--------------------------------------------------------|:------:|
 | [Cluster Architecture, Installation & Configuration](cluster-architecture-installation-and-configuration.md) |   25%  |
-| [Workloads & Scheduling]()                             |   15%  |
-| [Services & Networking]()                              |   20%  |
-| [Storage]()                                            |   10%  |
-| [Troubleshooting]()                                    |   30%  |
+| [Workloads & Scheduling](workloads-and-scheduling.md)                             |   15%  |
+| [Services & Networking](services-and-networking.md)                              |   20%  |
+| [Storage](storage.md)                                            |   10%  |
+| [Troubleshooting](troubleshooting.md)                                    |   30%  |
 
 ## Practice environments
 Katacoda - browser-based interactive playground
