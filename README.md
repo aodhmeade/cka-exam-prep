@@ -27,7 +27,8 @@
 ## Exam domains, weights and notes (table organised for learning) 
 | Exam Domain Notes                                      | Weight |
 |--------------------------------------------------------|:------:|
-| [Cluster Architecture, Installation & Configuration]() |   25%  |
+| [Cluster Architecture, Installation &
+Configuration](cluster-architecture-installation-and-configuration.md) |   25%  |
 | [Workloads & Scheduling]()                             |   15%  |
 | [Services & Networking]()                              |   20%  |
 | [Storage]()                                            |   10%  |
