@@ -1,7 +1,14 @@
 # cka-exam-prep
-
-## Repo purpose
 - Notes & other relevant material to prepare for the Certified Kubernetes Administrator (CKA) exam.  
+
+## Exam domains, weights and no
+| Exam Domain Notes                                      | Weight |
+|--------------------------------------------------------|:------:|
+| [Cluster Architecture, Installation & Configuration](cluster-architecture-installation-and-configuration.md) |   25%  |
+| [Workloads & Scheduling](workloads-and-scheduling.md)                             |   15%  |
+| [Services & Networking](services-and-networking.md)                              |   20%  |
+| [Storage](storage.md)                                            |   10%  |
+| [Troubleshooting](troubleshooting.md)                                    |   30%  |
 
 ## First items to note ...
 - Official guidance with respect to the exam, registration, etc., can be found
@@ -23,15 +30,6 @@
   - https://github.com/kubernetes/,
   - https://kubernetes.io/blog
 - There is a free retake.
-
-## Exam domains, weights and notes (table organised for learning) 
-| Exam Domain Notes                                      | Weight |
-|--------------------------------------------------------|:------:|
-| [Cluster Architecture, Installation & Configuration](cluster-architecture-installation-and-configuration.md) |   25%  |
-| [Workloads & Scheduling](workloads-and-scheduling.md)                             |   15%  |
-| [Services & Networking](services-and-networking.md)                              |   20%  |
-| [Storage](storage.md)                                            |   10%  |
-| [Troubleshooting](troubleshooting.md)                                    |   30%  |
 
 ## Practice environments
 Katacoda - browser-based interactive playground
