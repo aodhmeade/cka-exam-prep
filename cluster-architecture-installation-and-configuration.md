@@ -7,11 +7,11 @@
 | 5.  Perform a version upgrade on a Kubernetes cluster using Kubeadm    |   |
 | 6.  Implement etcd backup and restore                                  |   |
 
-Each section:
-Background snippet: 
-Declarative examples: yaml
-Imperative: kubectl
-Links: to more detail
+For each section, detail the following (non-exhaustive):
+Context: provide some background information.
+Declarative: provide some YAML examples.
+Imperative: provide some kubectl example commands.
+Links: kubernetes.io and other non-official resources.
 
 ## 1.  Manage role based access control (RBAC)                           
 - To perform any action in a cluster, you need to access the API.
@@ -108,7 +108,7 @@ create a role named "foo" with apiGroups specified.
 - The exam list six clusters that are in existence ???
 - Maybe the case that you have to add a node to the ik8s cluster.
 - kubeadm is a tool that you can use to set up a K8s cluster from scratch.
-
+- kubeadm is not the only tool, but seems to be considered straightforward.
 ```
 sudo apt update && sudo apt upgrade -y # to update and upgrade packages
 sudo install kubelet, kubeadm, kubectl # to install 
@@ -136,16 +136,101 @@ kubectl get po -n kube-system # inspect pods to see if weavenet pods running
 
 
 ## 4.  Provision underlying infrastructure to deploy a Kubernetes cluster 
-
-
+- cloud, multi-cloud, on-premises, hybrid, combinaton thereof.
+- possibly not tested in the exam ... review
 
 ## 5.  Perform a version upgrade on a Kubernetes cluster using Kubeadm    
+- if you build your cluster with kubeadm, you also have the option to upgrade
+  the cluster using the kubeadm upgrade command.
+- skipping minor versions when upgrading is unsupported.
+- the upgrade workflow at a high level is as follows:
+    1. upgrade a primary control plane node.
+    2. upgrade additional control plane nodes.
+    3. upgrade worker nodes.
+- Note: real world scenario requires certain precautions to be taken into
+  consideration, such as disabling swap in linux.  See the official kubernetes.io
+  guidance for more detailed information.
+- determine which version to upgrade to.  Find the latest stable kubernetes
+  version using OS package manager ('apt' as the exam is based on Ubuntu):
+- useful to mark the versions of kubeadm, kubectl and kubelet before you begin.
+```
+sudo apt-mark hold kubeadm kubelet kubectl
+```
+
+```
+apt-update
+apt-cache kubeadm
+# find the latest 1.21 version in the list
+# it should look like 1.21.x-00, where x is the latest patch.
+```
+- upgrading control plane nodes should be done one node at a time
+- the control plane must have the /etc/kubernetes/admin.conf file.
+
+- update kubeadm
+```
+# replace x in the 1.21.x-00 with latest patch version
+apt-mark unhold kubeadm && \
+apt-get update && apt-get install -y kubernetes=1.21.x-00 && \
+apt-mark hold kubeadm
+```
+- verify that the download works and has the expected version
+```
+kubeadm version
+# might be good practice to mark this newer version again with sudo apt-mark
+# hold kubeadm
+```
+- drain first node and execute upgrade
+```
+kubectl drain <node> --ignore-daemonsets
+```
+
+
+
+
+- verify the upgrade plan. This command checks that your cluster can be upgrade,
+  and fetches versions you can upgrade to.
+```
+kubeadm upgrade plan
+```
+- Note: kubeadm upgrade also automatically renews the certificates that it
+  manages on the node.
+- Note: if the kubeadm upgrade plan output shows any component configs that
+  require manual upgrade, you must provide a config file with replacement
+  configs to kubeam upgrade apply via the --config cli flag.
+- Next, choose a version to upgrade to:
+```
+sudo kubeadm upgrade apply v1.21.x
+-
+# once the command finishes you should see:
+[upgrade/successful] SUCCESS! Your cluster was upgraded to "v1.21.x". Enjoy!
+
+[upgrade/kubelet] Now that your control plane is upgraded, please proceed with
+upgrading your kubelets if you haven't already done so.
+```
+- upgrade kubelet
+```
+sudo apt-get install --only-upgrade kubelet
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+```
+
+
+
 
 
 ## 6.  Implement etcd backup and restore                                  
-- etcd is a key-value store used as Kubernetes' backing store for all cluster
-  data (i.e. cluster state data and cluster config data).
-- all K8s objects are stored on etcd.
+- etcd is an open source distributed key-value store used as Kubernetes' backing store for all cluster
+  data (i.e. cluster state data, metadata, cluster config data).
+- containerised workloads (distributed) have complex management requirements as
+  they grow.  Kubernetes simplifies the process of managing these workloads by
+  co-ordinating tasks which run on mulitple machines in multiple locations.  It
+  achieves this co-ordination by using a data store that provides a single
+  source of truth about the status of the system at any given point in time.  etcd is this data store.
+- etcd is built on the Raft consensus algorithm to ensure data consistency.
+- Kubernetes uses etcd's "watch" function to monitor cluster state data, compare
+  against ideal state and to reconfigure itself when changes occur.  
+- the 'etc' in etcd references the UNIX/Linux config directory /etc. The 'd' in
+  etcd stands for distributed.
 - periodically backing up the etcd cluster data is important to recover
   Kubernetes clusters in a DR event.
 - etcdctl: is a command line client for etcd.
