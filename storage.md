@@ -5,7 +5,7 @@
 | 3.  Understand persistent volume claims primitive                         |
 | 4.  Know how to configure applications with persistent storage            |
 
-
+... some background info ...
 - Container engines have traditionally not offered storage that outlives the
   container.  Containers in essence are considered transient.  Therefore you
   need a place to persistently store information.
@@ -22,6 +22,72 @@
   storage systems challenging.  The Container Storage Interface (CSI) is a
   standard that Kubernetes now uses to expose block and file storage to
   containerised workloads on container orchestration systems like Kubernetes.
+- Two important volumes types to note are 'emptyDir' and 'hostPath' volume
+  types.  The storage provider in each case is the Localhost and each has its own use case.
+    - emptyDir: is first created when a pod is assigned to a node, and exists as
+      long as that pod is running on that node.  It is initially empty and all
+      containers in the same pod, can r/w in the same emptyDir volume.  When a
+      pod is deleted or restarted the data is lost.  Depending on your
+      environment, emptyDir vols are stored on whatever medium that backs the
+      node, such as disk, or network storage.  You can also set emptyDir to run
+      off RAM (Kubernetes mounts a tmpfs in this instance).
+
+      ```
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: test-pd
+      spec:
+        containers:
+        - image: k8s.gcr.io/test-webserver
+          name: test-container
+          volumeMounts:
+          - mountPath: /cache
+            name: cache-volume
+        volumes:
+        - name: cache-volume
+        emptyDir: {}
+      ```
+    - verify by opening an interactive terminal, locating and listing the
+      directory
+
+      ```
+      kubectl exec -it test-pd bash
+      
+      root@test-pd:/# ls
+
+      root@test-pd:/# ls cache/
+      root@test-pd:/# 
+      ```
+
+
+    - hostPath: volume type mounts a file or directory from the host node's
+      filesystem into your pod.  Though generally not recommended, they can
+      be used for some use cases.  When configuring, note that the 'path'
+      property is required.  You also can specify an optional 'type'.  Some
+      supported types are: DirectoryOrCreate, Directory, FileOrCreate, File,
+      Socket, CharDevice, BlockDevice.
+
+    ```
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: test-pd
+    spec:
+      containers:
+      - image: k8s.gcr.io/test-webserver
+        name: test-container
+        volumeMounts:
+        - mountPath: /test-pd
+          name: test-volume
+      volumes:
+      - name: test-volume
+        hostPath:
+          # directory location on host
+          path: /data
+          # this field is optional
+          type: Directory
+   ``` 
 
 # ** 1.  Understand storage classes, persistent volumes **
 
@@ -42,7 +108,7 @@
       volume contains the actual storage.
     - persistent volumes are not namespaced, they are available to the entire
       cluster.
-    - pvc's must exist in the same namespace of the pod using them.
+    - pvc's are namespaced & must exist in the same namespace of the pod using them.
     - volumes are mounted into the container.
     - ConfigMap and Secret are considered local volumes but are not created via
       pv and pvc.
