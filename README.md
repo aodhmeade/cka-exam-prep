@@ -9,17 +9,17 @@
 | [Storage](storage.md)                                            |   10%  |
 | [Troubleshooting](troubleshooting.md)                                    |   30%  |
 
-## First items to note ...
-- Official guidance with respect to the exam, registration, etc., can be found
+## Exam details
+- Official guidance: with respect to the exam, registration, etc., can be found
   at [CNCF](https://www.cncf.io/certification/cka/) and at the [Linux  Foundation](https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/),
   as this is a joint effort between both. 
-- Read the candidate handbook, exam tips, curriculum overview, faqs, and view a
+- Required reading: candidate handbook, exam tips, curriculum overview, faqs, and view a
   demo of the exam environment.
 
-## Exam details 
+##  
 - The exam is proctored remotely.
 - It consists of 15-20 lab/performance-based problems to be solved in a command line running Linux.
-- The exam is provisioned on Ubuntu 18.04
+- The exam is currently provisioned on Ubuntu 18.04
 - The questions are weighted differently.
 - You have 2 hrs to complete the CKA.
 - The exam is currently based on Kubernetes v1.21 

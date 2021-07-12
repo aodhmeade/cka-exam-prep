@@ -360,6 +360,7 @@ kubectl scale deployment nginx-deployment --replicas=10
 
 # 5.  Understand how resource limits can affect Pod scheduling
 [https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/]
+[https://cloud.google.com/blog/products/containers-kubernetes/kubernetes-best-practices-resource-requests-and-limits]
 
 - When talking about managing resources for Containers, there are two terms to
   keep in mind: requests and limits.
@@ -369,6 +370,14 @@ kubectl scale deployment nginx-deployment --replicas=10
   you specify the resource request, the scheduler uses this information to
   decide which node to place the Pod on.  When you specify a resoure limit, the
   kubelet enforces those limits (and conversely reserve limit).
+
+- Requests are what a container is guaranteed to get.  If a container requests a
+  resource, Kubernetes will only schedule it on a node if the node has the
+  resources available. Limits on the other hand, set a max value that a
+  container cannot go above.
+
+- Limits cannot be lower than requests.  Kubernetes will throw an error and the
+  container will not run.
 
 - By default, Kubernetes assumes that a container within a Pod requires 0.5 CPU
   and 256Mi of memory.  If the container needs more than this, you need to
@@ -390,17 +399,143 @@ kubectl scale deployment nginx-deployment --replicas=10
 - See the official kubernetes.io link above to understand the meaning of the
   resource units in Kubernetes.
 
-- At the namespace level, you can limit the total sum of compute resources that
-  can be requested.
+- A typical Pod spec might look a little like this:
 
+```
 
+```
 
+- Note: container requests and limits are additive.  That is to say, the sum
+  total of requests and limits will be the sum total of all requests and limits
+  for all containers in a Pod.
 
+- CPU resources are defined in millicores. 1 full core = "1000m", 2 full cores =
+  "2000m". 1/4 core = "250m".  Putting more in than the core count of your node,
+  the Pod will never be scheduled.
 
+- Memory resources are defined in bytes (normally it seems in mebibyte values).
+  Like CPU, if you request more than the node can give, the Pod will not be
+  scheduled.  Because mem usage cannot be throttled (unlike CPU), if a container
+  uses more than its limit, it will be terminated.
 
+- Requests and limits are on a per-container basis but you can also set up
+  ResourceQuotas and LimitRanges at the namespace level.
 
+- ResourceQuota example:
 
+    - 'kubectl create namespace demo' 
+    - create yaml manifest file to limit resources:
 
+```
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: demo
+spec:
+  hard:
+    requests.cpu: 500m
+    requests.memory: 100Mib
+    limits.cpu: 700m
+    limits.memory: 500Mib
+```
+
+- 'kubectl apply -f demo.yaml' to apply to namespace
+
+- Create a Pod that exceeds one of the above limits.  This should fail.
+
+- A LimitRange differs to a ResourceQuota in that it applies to an individual
+  container in a namespace.  ResourceQuota looks at the Namespace as a whole.
+  Using LimitRange helps prevent someone creating too small or too big
+  containers inside a Namespace.
+
+- LimitRange example:
+
+```
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: demo
+spec:
+  limits:
+- default:
+    cpu: 600m
+    memory: 100Mib
+  defaultRequest:
+    cpu: 100m
+    memory: 50Mib
+  max:
+    cpu: 1000m
+    memory: 200Mib
+  min:
+    cpu: 10m
+    memory: 10Mib
+  type: Container
+```
 
 
 # 6.  Awareness of manifest management and common templating tools
+
+## Helm
+- Helm is a tool for managing packages of pre-configured Kubernetes resources,
+  aka Kubernetes charts. It is similar to a package manager like apt, yum, etc.
+  Charts are similar to packages.
+
+- A typical containerised application will have numerous manifest files (for
+  Deployment, Services, ConfigMaps, Secrets, Ingress, etc.).  With Helm you can
+  package them all into a single tarball.  This tarball can be placed in a repo.
+  With a single Helm command, you can download, and deploy and start an
+  application.
+
+```
+chart.yaml
+├── README.md
+├── templates
+│   ├── NOTES.txt
+│   ├── helpers.tpl
+│   ├── configmap.yaml
+│   ├── deployment.yaml
+│   ├── pvc.yaml
+│   ├── secrets.yaml
+│   └── svc.yaml
+└── values.yaml
+```
+
+- A default repo is included once you have initialised Helm 'helm init'. You can
+  add other repos. Repos are http servers that contain an index file and a
+  tarball of all the charts present.  
+
+- To check your repo list, 'helm repo list'
+
+- To make sure you have the latest list of charts:
+'helm repo update'
+
+- To search your repos based on keywords:
+'$ helm search nginx'
+
+- To see more information:
+'helm show chart <chart-name>'
+
+- To add a repo:
+'$ helm repo add testing http://storage.googleapis.com/kubernetes-charts-testing'
+
+- To install a chart:
+'$ helm install testing/nginx'
+
+- To uninstall a chart:
+'$helm uninstall <chart-name>'
+
+- To rollback:
+'$ helm rollback'
+
+- To find more information about Helm commands:
+'$ helm help'
+'$ helm <command> -h'
+
+
+
+
+
+
+
+
+

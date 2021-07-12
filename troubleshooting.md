@@ -192,3 +192,4 @@ kubectl get service
 # for more information, describe the service
 kubectl describe service <service-name>
 ```
+[https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/]
