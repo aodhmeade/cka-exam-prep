@@ -10,7 +10,8 @@
 
 [https://cloud.google.com/kubernetes-engine/docs/concepts/network-overview]
 [https://github.com/IBM/kubernetes-networking/blob/master/pdf/KubernetesNetworking-Lecture.pdf]
-
+[https://www.youtube.com/watch?v=InZVNuKY5GY&list=PLj6h78yzYM2O1wlsM-Ma-RYhfT5LKq0XC]
+[https://www.youtube.com/watch?v=tq9ng_Nz9j8]
 
 **Note**
 The Kubernetes networking model relies heavily on IP addresses.  Services, Pods,
@@ -109,33 +110,152 @@ section 6 below.
 
 
 
-n ** 3.  Understand ClusterIP, NodePort, LoadBalancer service types and
-# endpoints **
+# **3.  Understand ClusterIP, NodePort, LoadBalancer service types and endpoints**
 
-## ClusterIP
-- this is the default approach when creating a Kubernetes service.  The service
-  is allocated an internal IP that other components can use to access the pods.
+[https://kubernetes.io/docs/concepts/services-networking/service/]   
+[https://cloud.google.com/kubernetes-engine/docs/concepts/service]
 
-### Target Port
-- allows you to separate the port the service is available on from the port the
-  application is listening on
+- An abstract way to expose an application running on a set of Pods as a network
+  service.
 
-## Node Port
-While the TargetPort and ClusterIP make the pod available to inside the cluster,
-the NodePort exposes the service on each Node's IP via the defined static port.
+- In a Kubernetes cluster, each Pod has an internal IP address but Pods are
+  created & destroyed to match the desired state of a cluster. In effect, Pods
+  are short-lived (ephemeral). Therefore, it would not be practical to use the
+  Pod IP addresses directly. How then do you make them accessible.  This is
+  where Services come in. You use them to route traffic into containers within a
+  Pod.  They have a stable IP address that lasts for the lifetime of the
+  Service, even as the IP addresses of the Pods change.
 
-## External IPs
+- A Service then is an abstract mechanism for exposing Pods on a Network.  This
+  abstraction defines a logical set of Pods and a policy by which to access
+  them.  The set of Pods targeted by a Service is usually determined by a
+  'selector'.  For a Pod to be a member of a Service, it must have all the
+  labels specified in the selector.  Each Service is assigned a type - either
+  ClusterIP, NodePort, or LoadBalancer - i.e. a specific way to access the
+  Pod(s).
+
+- There are five types of Services:
+
+    - ClusterIP (default): Internal clients send requests to a stable internal IP
+    address.
+    
+    - NodePort: Clients send requests to the IP address of a node on one or
+    more nodePort values that are specified by the Service.
+     
+    - LoadBalancer: Clients send requests to the IP address of a network
+    load balancer.
+     
+    - ExternalName: Internal clients use the DNS name of a Service as
+    an alias for an external DNS name.
+     
+    - Headless: You can use a headless service when you want a Pod
+    grouping, but don't need a stable IP address.
+    
+The NodePort type is an extension of the ClusterIP type. So a Service of type
+NodePort has a cluster IP address.
+    
+The LoadBalancer type is an extension of the NodePort type.  So a Service of
+type LoadBalancer has a cluster IP address and one or more nodePort values.
+
+- ClusterIP Service manifest example:
+
+'''
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-clusterip-service
+spec:
+  selector:
+    app: demo
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+'''
+
+- Create using 'kubectl apply -f <name-of-manifest-file>'. After creation, use
+  'kubectl get svc' to see the stable IP address.
+
+- Clients in the cluster call the Service by using the cluster IP address and
+  the TCP port specified in the port field of the Service manifest. The request
+  is forwarded to one of the member Pods on the TCP port specified in the
+  targetPort field. For the preceding example, a client calls the Service at
+  10.11.247.213 on TCP port 80. The request is forwarded to one of the member
+  Pods on TCP port 8080. The member Pod must have a container that is listening
+  on TCP port 8080. If there is no container listening on port 8080, clients
+  will see a message like "Failed to connect" or "This site can't be reached".
+
+- **NodePort Service manifest example:**
+
+'''
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-demo-nodeport-service
+spec:
+  selector:
+    app: my
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+'''
+
+- With a Service of type 'NodePort', Kubernetes gives you a nodePort value.  The
+  Service is then accessible by using the IP address of **any node** along with
+  the nodePort value.
+
+- Create using 'kubectl apply -f <name-of-manifest-file>.  Use 'kubectl get
+  service -o yaml' to view the specs and to see the nodePort value.  e.g. :
+
+'''
+
+'''
+- External clients call the Service by using the external IP address of a node
+  and the TCP port specified by the 'nodePort'. The request is forwarded to one
+  of the member Pods on the TCP port specified by the 'targetPort' field.
+
+- Note: the 'NodePort' Service type is an extension of the 'ClusterIP' Service
+  type. That gives internal clients two ways to call the Service:
+    - use 'ClusterIP' and 'port'.
+    - use a node's IP address and 'nodePort'
 
 
-## LoadBalancer
+- **LoadBalancer Service manifest example:**
 
+- Exposes the Service externally using a public cloud provider's load balancer.  
 
+'''
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-demo-loadbalancer-service
+spec:
+  selector:
+    app: my-demo-loadbalancer-service
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+'''
 
+- Create using 'kubectl apply -f <name-of-manifest-file>.  Use 'kubectl get
+  service -o yaml' to view the specs and to see the IP address .  e.g. :
+'''
 
+'''
 
+- In the output, the network load balancer's IP address appears under
+  'status:loadBalancer:ingress:'.  The request is forwareded to one of the member Pods
+  on the TCP port specified by 'targetPort'.
 
-
-
+Notes:
+- the value of the 'port' field in a Service manifest is arbitrary.  The value
+  of 'targetPort' is not arbitrary.  Each member Pod must have a container
+  listening on 'targetPort'.
+- be familiar with using 'curl' to verify
 
 
 
