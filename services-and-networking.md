@@ -159,7 +159,7 @@ type LoadBalancer has a cluster IP address and one or more nodePort values.
 
 - ClusterIP Service manifest example:
 
-'''
+```
 apiVersion: v1
 kind: Service
 metadata:
@@ -172,7 +172,7 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 8080
-'''
+```
 
 - Create using 'kubectl apply -f <name-of-manifest-file>'. After creation, use
   'kubectl get svc' to see the stable IP address.
@@ -188,7 +188,7 @@ spec:
 
 - **NodePort Service manifest example:**
 
-'''
+```
 apiVersion: v1
 kind: Service
 metadata:
@@ -201,7 +201,7 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 8080
-'''
+```
 
 - With a Service of type 'NodePort', Kubernetes gives you a nodePort value.  The
   Service is then accessible by using the IP address of **any node** along with
@@ -210,9 +210,9 @@ spec:
 - Create using 'kubectl apply -f <name-of-manifest-file>.  Use 'kubectl get
   service -o yaml' to view the specs and to see the nodePort value.  e.g. :
 
-'''
+```
 
-'''
+```
 - External clients call the Service by using the external IP address of a node
   and the TCP port specified by the 'nodePort'. The request is forwarded to one
   of the member Pods on the TCP port specified by the 'targetPort' field.
@@ -227,7 +227,7 @@ spec:
 
 - Exposes the Service externally using a public cloud provider's load balancer.  
 
-'''
+```
 apiVersion: v1
 kind: Service
 metadata:
@@ -239,13 +239,13 @@ spec:
   ports:
   - port: 80
     targetPort: 8080
-'''
+```
 
 - Create using 'kubectl apply -f <name-of-manifest-file>.  Use 'kubectl get
   service -o yaml' to view the specs and to see the IP address .  e.g. :
-'''
+```
 
-'''
+```
 
 - In the output, the network load balancer's IP address appears under
   'status:loadBalancer:ingress:'.  The request is forwareded to one of the member Pods
@@ -311,7 +311,7 @@ Notes:
 - For exam: know how to set up an Ingress Resource and Ingress Controller.
 
 - Sample Ingress Resource manifest:
-'''
+```
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -330,21 +330,21 @@ spec:
         backend:
           serviceName: service-two
           servicePort: 80
-'''
+```
 
 - You can manage ingress resources like you do Pods, Services, etc.:
-'''
+```
 $ kubectl get ingress
 $ kubectl describe ingress <ingress-name>
 $ kubectl edit ingress <ingress-name>
 $ kubectl delete ingress <ingress-name>
-'''
+```
 - To deploy an Ingress Controller, you can create one with 'kubectl'.
 
 - You can use Helm to install an ingress controller:
-'''
+```
 helm search hub ingress
-'''
+```
 
 - Test the host by using curl
 
@@ -447,12 +447,12 @@ kubectl -n kube-system get configmap coredns -o yaml
 
 - Apply with 'kubectl apply -f <name.yaml>'
 
-'''
+```
 $ systemctl status kubelet.service
 $ ps -aux | grep kubelet
 $ ls /etc/cni/net.d/
 $ ls /opt/cni/bin
-''' 
+``` 
 
 
 
