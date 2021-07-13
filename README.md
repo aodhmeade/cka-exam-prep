@@ -1,8 +1,13 @@
 # cka-exam-prep
 - Notes & other relevant material for the Certified Kubernetes Administrator (CKA) exam.  
 
+## Exam details
+- Official guidance: exam details, registration, etc., can be found at [CNCF](https://www.cncf.io/certification/cka/) and at the [Linux  Foundation](https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/), as this is a joint effort between both.   
+    - Read: candidate handbook, exam tips, curriculum overview, faqs. 
+    - View: a demo of the exam environment.
+
 ## Exam domains & weights 
-| Exam Domain Notes                                      | Weight |
+| Exam Domain                                       | Weight |
 |--------------------------------------------------------|:------:|
 | [Cluster Architecture, Installation & Configuration](cluster-architecture-installation-and-configuration.md) |   25%  |
 | [Workloads & Scheduling](workloads-and-scheduling.md)                             |   15%  |
@@ -10,10 +15,7 @@
 | [Storage](storage.md)                                            |   10%  |
 | [Troubleshooting](troubleshooting.md)                                    |   30%  |
 
-## Exam details
-- Official guidance: exam details, registration, etc., can be found at [CNCF](https://www.cncf.io/certification/cka/) and at the [Linux  Foundation](https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/),as this is a joint effort between both.   Read: candidate handbook, exam tips, curriculum overview, faqs. View: a demo of the exam environment.
-
-## Note:
+## Some points worth noting:
 - The exam is proctored remotely.
 - It consists of 15-20 lab/performance-based problems.
 - Problems to be solved in a command line running Linux.
@@ -23,7 +25,8 @@
 - The exam is currently based on Kubernetes v1.21 
 - There are six clusters that comprise the CKA exam environment. Each with one
   main node, a varying number of worker nodes, and different CNI's.
-- You are allowed one additional browser tab to access documentation from
+- You are allowed to open one additional browser tab to access documentation
+  from:
   - https://kubernetes.io/docs
   - https://github.com/kubernetes/
   - https://kubernetes.io/blog
