@@ -473,7 +473,9 @@ spec:
 ```
 
 
-# 6.  Awareness of manifest management and common templating tools
+# **6.  Awareness of manifest management and common templating tools**
+
+[https://github.com/helm/helm]
 
 ## Helm
 - Helm is a tool for managing packages of pre-configured Kubernetes resources,
@@ -500,38 +502,65 @@ chart.yaml
 └── values.yaml
 ```
 
-- A default repo is included once you have initialised Helm 'helm init'. You can
-  add other repos. Repos are http servers that contain an index file and a
+- To install:
+```
+curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v2.8.2-linux-amd64.tar.gz
+
+tar -xvf helm-v2.8.2-linux-amd64.tar.gz
+
+mv linux-amd64/helm /usr/local/bin/
+```
+- Once installed, initialise and sync latest charts. A default repo is included
+  once you have installed. Repos are http servers that contain an index file and a
   tarball of all the charts present.  
+```
+helm init --stable-repo-url https://charts.helm.sh/stable
 
-- To check your repo list, 'helm repo list'
-
-- To make sure you have the latest list of charts:
-'helm repo update'
-
+helm repo update
+```
+- To check your repo list,
+```
+'helm repo list'
+```
 - To search your repos based on keywords:
+```
 '$ helm search nginx'
-
+```
 - To see more information:
+```
 'helm show chart <chart-name>'
+```
 
 - To add a repo:
+```
 '$ helm repo add testing http://storage.googleapis.com/kubernetes-charts-testing'
-
+```
 - To install a chart:
+```
 '$ helm install testing/nginx'
-
+$ helm install --name my-demo testing/nginx
+```
+- To view helm package:
+```
+helm ls
+```
 - To uninstall a chart:
+```
 '$helm uninstall <chart-name>'
-
+```
 - To rollback:
+```
 '$ helm rollback'
-
+```
 - To find more information about Helm commands:
+```
 '$ helm help'
 '$ helm <command> -h'
-
-
+```
+- Helm deploys all the replica sets, pods, services, etc. Examine with:
+```
+kubectl get all
+```
 
 
 

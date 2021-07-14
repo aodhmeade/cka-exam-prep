@@ -1,5 +1,4 @@
-
-| ** Troubleshooting 30%**                   |   |
+| **Troubleshooting 30%**                   |   |
 |--------------------------------------------|---|
 | 1.  Evaluate cluster and node logging      |   |
 | 2.  Understand how to monitor applications |   |
@@ -8,23 +7,24 @@
 | 5.  Troubleshoot cluster component failure |   |
 | 6.  Troubleshoot networking                |   |
 
-Seems to make more sense to group the sections as follows:
+- Seems to make more sense to group the sections as follows:
 
-1 and 6: cover Kubernetes Components 
+- 1 and 5: covers Kubernetes Components 
     - Control Plane Components: kube-apiserver, etcd, kube-scheduler,
     - kube-controller-manager
     - Node Components: kubelet, kube-proxy, container runtime
     - Addons: namely DNS
 
-2, 3 and 4: cover Applications
+- 2, 3 and 4: covers Applications
 
-6: cover Networking (Services CNI)
+- 6: covers Networking (Services CNI)
 
 Some observations:
 Kubernetes relies on API calls and is sensitive to network issues.  Therefore,
 standard linux tools (e.g. dig, tcpdump) can be very useful in troubleshooting your cluster.
 
-# ** 1.  Evaluate cluster and node logging  **
+# **1.  Evaluate cluster and node logging**
+
 ## Node level logging architecture:
 - a container engine handles & redirects any output generated to a containerised
   applications stdout and stderr streams.  For example, the Docker container
@@ -64,7 +64,7 @@ standard linux tools (e.g. dig, tcpdump) can be very useful in troubleshooting y
     - include a dedicated sidecar container for logging in an application pod.
     - push logs directly to a backend from within the application.
 
-# ** 2.  Understand how to monitor applications **
+# **2.  Understand how to monitor applications**
 ```
 kubectl exec --stdin --tty <pod-name> -- /bin/bash # if only one container
 running
@@ -77,35 +77,44 @@ exit # enter 'exit' when you are finished with the shell
 
 ```
 
-# ** 3.  Manage container stdout & stderr logs  **
+# **3.  Manage container stdout & stderr logs**
 
 
 
 
-# ** 4.  Troubleshoot application failure **
-Inevitably, you will need to debug problems with your application.
+# **4.  Troubleshoot application failure**
+
+- Inevitably, you will need to debug problems with your application.
+
+- First step is to check if a pod is running
 ```
-# to start, check if a pod is running
 kubectl get pods
-
-# to get more specific information from a pod, use describe
+```
+- If the Pod is not ready, use 'describe' to get more specific information from
+  a pod. This provides information about the Pod as well as a list of events
+  that describe the initialisation process which may show issues.
+```
 kubectl describe pod <pod-name>
-
-# to get extra detail, pass the -o yaml output format flag to the kubectl get
-# pod command
+```
+- To get extra detail, pass the -o yaml output format flag to the kubectl get
+  pod command
+```
 kubectl get pod <pod-name> -o yaml
-
-# to obtain the stdout & stderr logs from the containers in the pod (the level of detail will
-# depend on how the application has been configured.
-kubectl logs <pod-name>
-
-# to check the logs of the previous pod
-kubectl logs <pod-name> -f --previous
-
+```
+- To obtain the stdout & stderr logs from the containers in the pod (the level
+  of detail will depend on how the application has been configured).
+```
+kubectl logs -f <pod-name> -c <containername> -n <namespace>
+```
+- If the container has crashed, you can try and check the logs using the
+  'previous' flag:
+```
+kubectl logs <pod-name> --previous -c <containername> -n <namespace>
 ```
 
 
-# ** 5.  Troubleshoot cluster component failure **
+# **5.  Troubleshoot cluster component failure**
+
 If you have ruled out your app as the root cause of the problem you are
 experiencing then you can troubleshoot your cluster components.  
 
@@ -181,9 +190,25 @@ The next step would be to look deeper into the relevant machines hosting the
 services.
 
 
+Node Components
+
+kubelet
+
+sudo journalctl -u kubelet
+sudo systemctl status kubelet
+sudo systemctl enable kubelet
+sudo systemctl start kubelet
 
 
-# ** 6.  Troubleshoot networking  **
+
+
+
+
+
+
+
+
+# **6.  Troubleshoot networking**
 
 ```
 # first step is to check the service status
