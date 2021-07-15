@@ -37,7 +37,7 @@
 - Minikube - local installation
 - From scratch using VMs on either GCP, AWS, Azure, etc.
 - killer.sh (check this out ...)
-
+- https://kubewiz.com/exams  ... check this out
 ## Tools
 Some necessary, some seem optional like tmux
 - linux/bash (systemd ... running services)

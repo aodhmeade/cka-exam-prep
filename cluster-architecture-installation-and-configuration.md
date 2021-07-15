@@ -7,13 +7,11 @@
 | 5.  Perform a version upgrade on a Kubernetes cluster using Kubeadm    |   |
 | 6.  Implement etcd backup and restore                                  |   |
 
-For each section, detail the following (non-exhaustive):
-Context: provide some background information.
-Declarative: provide some YAML examples.
-Imperative: provide some kubectl example commands.
-Links: kubernetes.io and other non-official resources.
+## **1. Manage role based access control (RBAC)**               
 
-## 1.  Manage role based access control (RBAC)                           
+- [official - kubernetes.io](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
+- [other - bitnami tutorials](https://docs.bitnami.com/tutorials/configure-rbac-in-your-kubernetes-cluster/)
+
 - To perform any action in a cluster, you need to access the API.
 - Three steps are performed when accessing the API: authentication,
   authorisation (ABAC, RBAC, Webhook, Global deny/allow settings), and Admission Control. 
@@ -85,7 +83,6 @@ roleRef:
 kubectl create -f rolebinding-pod-reader.yaml
 ```
 
-
 ## kubectl
 
 ```
@@ -99,47 +96,191 @@ kubectl create role foo --verb=get,list,watch --resource=replicasets.apps #
 create a role named "foo" with apiGroups specified.
 ```
 
-- [official - kubernetes.io](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
-- [other - bitnami tutorials](https://docs.bitnami.com/tutorials/configure-rbac-in-your-kubernetes-cluster/)
 
+# **2. Use Kubeadm to install a basic cluster**
 
-## 2.  Use Kubeadm to install a basic cluster                             
-### background
-- The exam list six clusters that are in existence ???
-- Maybe the case that you have to add a node to the ik8s cluster.
-- kubeadm is a tool that you can use to set up a K8s cluster from scratch.
-- kubeadm is not the only tool, but seems to be considered straightforward.
+[https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/]
+[https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/]
+[https://kubernetes.io/docs/setup/production-environment/container-runtimes/]
+
+- kubeadm is a cli tool that you can use to set up a K8s cluster from scratch.
+- kubeadm is not the only tool. There are other vendor specific tools. 
+- Bootstrapping a Kubernetes cluster with kubeadm essentially involves 3 steps: 
+    - run 'kubeadm init' (to initialise the cp/head node)
+    - apply a network plugin (a CNI plugin),
+    - run 'kubeadm join' (on a worker node).
+- There are other commands such as kubeadm upgrade, kubeadm config, kubeadm
+  token, kubeadm reset.
+- Before you begin, check to ensure you have a container runtime installed on
+  your nodes.
+- Once your cluster is up and running, you would use the 'kubectl' command to
+  interact with your cluster. kubectl uses $HOME/.kube/config as a configuration
+  file.  This contains all the Kubernetes endpoints that you may end up using,
+  as well as other items such as credentials, contexts, definitions, etc.
+- Note: A context is a combination of a cluster and user credentials.  You can
+  switch contexts with kubectl.  This is useful when switching between clusters,
+  e.g. going from local to the cloud.
 ```
-sudo apt update && sudo apt upgrade -y # to update and upgrade packages
-sudo install kubelet, kubeadm, kubectl # to install 
-sudo kubeadm init # to initialise cluster on control plane. This may take
-several minutes.  When it finishes you should see "Your Kubernetes control-plane
-has initialized successfully!"
-# To start using your cluster, you need to make the following config changes:
+$ kubectl config use-context name-of-new-context
+```
+
+## install in two steps: 1 - install a control plane, 2 - grow the cluster by
+adding a worker node.
+
+- Note: steps performed using two GCP virtual machines running Ubuntu 18.04.
+
+### Step 1 - install a control plane node
+```
+1. Switch to root
+# sudo -i
+
+1.1 Disable swap on all nodes (note why exactly ...). Optional: update the file
+system table file to ensure it is off on all reboots.
+```
+# swapoff -a
+# sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+```
+
+2 Start by updating and upgrading software packages
+# sudo apt update && sudo apt upgrade -y 
+
+3 Next, install a container runtime engine, example - docker.
+# sudo apt install -y docker.io
+
+3.1 Configure Cgroup drivers
+[https://kubernetes.io/docs/setup/production-environment/container-runtimes/]
+
+```
+cat << EOF | sudo tee /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
+
+```
+3.2 Use systemd to restart docker and enable on boot
+```
+sudo systemctl enable docker
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+```
+
+4 Add a new repo for Kubernetes. Create and edit as follows:
+```
+# vim /etc/apt/sources.list.d/kubernetes.list
+'deb    http://apt.kubernetes.io/   kubernetes-xenial   main'
+```
+
+5. Add a GPG key for the packages. 
+```
+# curl -s \
+# https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+# | apt-key add -
+```
+6. Update the new repo
+```
+# apt-get update
+```
+
+7. Install the necessary software (kubeadm kubelet kubectl).  
+- Note: tried installing all three
+- the Kubelet version may never exceed the API server version.  For example, the
+  kubelet running v.1.20.0 should be fully compatible with a 1.21.0 API server,
+  but not vica versa.
+```
+# apt-get install kubeadm 
+```
+
+8. Mark the relevant packages so they are not upgraded:
+```
+# apt-mark hold kubeadm kubelet kubectl
+```
+
+9. Get cp IP address and add to /etc/hosts
+```
+hostname -i
+vim /etc/hosts
+10.128.0.3 k8scp #<-- add this line (change ip to match output from hostname -i)
+```
+
+10. To start using your cluster, you need to make the following config changes:
+```
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config # copy the default
 config to your home directory 
+```
+
+
+11. At this point we could copy and paste the join command from the cp node. That
+command only works for 2 hours, so we will build our own join should we want to
+add nodes in the future. Find the token on the cp node. The token lasts 2 hours
+by default. If it has been longer, and no token is present you can generate a
+new one with the sudo kubeadm token create command, seen in the following
+command. On the cp node:
+```
+# kubeadm token list
+# kubeadm token create --print-join-command
+```
+
+11. Use the above output on the worker node:
+
+```
+kubeadm join k8scp:6443 --token qsqg38.g9pohmf6pjdw0hkw \
+--discovery-token-ca-cert-hash \
+sha256:246ac43b7feb35d39340e1930c263e910f6f95f53be8b983a5b011a19c9e100c
+```
+
+12. To verify if node has joined, run this on the cp:
+```
+$ kubectl get nodes
+```
+
+
+13. To start using your cluster, you need to make the following config changes:
+```
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config # copy the default
+config to your home directory 
+```
+
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
 Set up Pod Networking
+
 You will need to set up a Container Network Interface (CNI). 
+
 Know one for the exam.
+
 Weave seems to be recommended.
+
 kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl
 version | base64 | tr -d '\n')"
+
 kubectl get po -n kube-system # inspect pods to see if weavenet pods running
 
 
 ... come back to thi ... 
 ```
 
-## 3.  Manage a highly-available Kubernetes cluster                       
+## **3.  Manage a highly-available Kubernetes cluster**                       
 
 
-## 4.  Provision underlying infrastructure to deploy a Kubernetes cluster 
+
+
+## **4. Provision underlying infrastructure to deploy a Kubernetes cluster**
 - cloud, multi-cloud, on-premises, hybrid, combinaton thereof.
 - possibly not tested in the exam ... review
 
-## 5.  Perform a version upgrade on a Kubernetes cluster using Kubeadm    
+
+
+
+
+## **5.  Perform a version upgrade on a Kubernetes cluster using Kubeadm**
 - if you build your cluster with kubeadm, you also have the option to upgrade
   the cluster using the kubeadm upgrade command.
 - skipping minor versions when upgrading is unsupported.
