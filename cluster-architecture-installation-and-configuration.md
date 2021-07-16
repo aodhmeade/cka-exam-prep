@@ -7,7 +7,7 @@
 | 5.  Perform a version upgrade on a Kubernetes cluster using Kubeadm    |   |
 | 6.  Implement etcd backup and restore                                  |   |
 
-## **1. Manage role based access control (RBAC)**               
+#**1. Manage role based access control (RBAC)**               
 
 - [official - kubernetes.io](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
 - [other - bitnami tutorials](https://docs.bitnami.com/tutorials/configure-rbac-in-your-kubernetes-cluster/)
@@ -33,19 +33,20 @@
     - RoleBinding
     - ClusterRoleBinding
 
-To manage RBAC, you need:
-- Rules: this is an operation (verb) that can be carried out on a resource.
-- Role & ClusterRole: represent a set of permissions (rules).  They are additive
-  (i.e. there are no "deny" rules).  A role sets permissions within a particular
-  namespace.  ClusterRole by contrast is non-namespaced.
-- Subjects: Is the entity that attempts an operation, of which there are 3:
-    - user accounts: (human or otherwise) - external to the cluster.  These are
-      not API objects.
-    - service accounts:
-    - groups:
-- RoleBindings and ClusterRoleBindings: these bind subjects to roles. Difference
-  here is similiar to Role versus ClusterRole.  RoleBindings applies to a
-  namespace, whereas ClusterRoleBinding applies to all namespaces.
+- To manage RBAC, you need:
+    - Rules: this is an operation (verb) that can be carried out on a resource.
+    - Role & ClusterRole: represent a set of permissions (rules).  They are additive
+      (i.e. there are no "deny" rules).  A role sets permissions within a particular
+      namespace.  ClusterRole by contrast is non-namespaced.
+    - Subjects: Is the entity that attempts an operation, of which there are 3:
+        - user accounts: (human or otherwise) - external to the cluster.  These are
+          not API objects.
+        - service accounts:
+        - groups:
+    - RoleBindings and ClusterRoleBindings: these bind subjects to roles.
+      Difference here is similiar to Role versus ClusterRole.  RoleBindings
+      applies to a namespace, whereas ClusterRoleBinding applies to all
+      namespaces.
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -97,11 +98,11 @@ create a role named "foo" with apiGroups specified.
 ```
 
 
-# **2. Use Kubeadm to install a basic cluster**
+#**2. Use Kubeadm to install a basic cluster**
 
-[https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/]
-[https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/]
-[https://kubernetes.io/docs/setup/production-environment/container-runtimes/]
+- [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/]
+- [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/]
+- [https://kubernetes.io/docs/setup/production-environment/container-runtimes/]
 
 - kubeadm is a cli tool that you can use to set up a K8s cluster from scratch.
 - kubeadm is not the only tool. There are other vendor specific tools. 
@@ -130,24 +131,31 @@ adding a worker node.
 - Note: steps performed using two GCP virtual machines running Ubuntu 18.04.
 
 ### Step 1 - install a control plane node
-```
-1. Switch to root
-# sudo -i
 
-1.1 Disable swap on all nodes (note why exactly ...). Optional: update the file
+1. Switch to root
+```
+sudo -i
+```
+
+2. Disable swap on all nodes (note why exactly ...). Optional: update the file
 system table file to ensure it is off on all reboots.
 ```
-# swapoff -a
-# sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+swapoff -a
+sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 ```
 
-2 Start by updating and upgrading software packages
-# sudo apt update && sudo apt upgrade -y 
+3. Start by updating and upgrading software packages
+```
+sudo apt update && sudo apt upgrade -y 
+```
 
-3 Next, install a container runtime engine, example - docker.
-# sudo apt install -y docker.io
+4. Next, install a container runtime engine, example - docker.
+```
+ sudo apt install -y docker.io
+```
 
-3.1 Configure Cgroup drivers
+5. Configure Cgroup drivers
+
 [https://kubernetes.io/docs/setup/production-environment/container-runtimes/]
 
 ```
@@ -163,31 +171,34 @@ cat << EOF | sudo tee /etc/docker/daemon.json
 EOF
 
 ```
-3.2 Use systemd to restart docker and enable on boot
+
+6. Use systemd to restart docker and enable on boot
 ```
 sudo systemctl enable docker
 sudo systemctl daemon-reload
 sudo systemctl restart docker
 ```
 
-4 Add a new repo for Kubernetes. Create and edit as follows:
+7. Add a new repo for Kubernetes. Create and edit as follows:
 ```
-# vim /etc/apt/sources.list.d/kubernetes.list
-'deb    http://apt.kubernetes.io/   kubernetes-xenial   main'
+vim /etc/apt/sources.list.d/kubernetes.list
+'deb    http://apt.kubernetes.io/   kubernetes-xenial   main'   #<-- add this
+line to the file
 ```
 
-5. Add a GPG key for the packages. 
+8. Add a GPG key for the packages. 
 ```
-# curl -s \
-# https://packages.cloud.google.com/apt/doc/apt-key.gpg \
-# | apt-key add -
+curl -s \
+https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+| apt-key add -
 ```
-6. Update the new repo
+
+9. Update the new repo
 ```
 # apt-get update
 ```
 
-7. Install the necessary software (kubeadm kubelet kubectl).  
+10. Install the necessary software (kubeadm kubelet kubectl).  
 - Note: tried installing all three
 - the Kubelet version may never exceed the API server version.  For example, the
   kubelet running v.1.20.0 should be fully compatible with a 1.21.0 API server,
@@ -196,56 +207,60 @@ sudo systemctl restart docker
 # apt-get install kubeadm 
 ```
 
-8. Mark the relevant packages so they are not upgraded:
+11. Mark & hold the relevant packages so they are not upgraded:
 ```
 # apt-mark hold kubeadm kubelet kubectl
 ```
 
-9. Get cp IP address and add to /etc/hosts
+12. Get cp IP address and add to /etc/hosts
 ```
 hostname -i
 vim /etc/hosts
 10.128.0.3 k8scp #<-- add this line (change ip to match output from hostname -i)
 ```
 
-10. To start using your cluster, you need to make the following config changes:
-```
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config # copy the default
-config to your home directory 
-```
-
-
-11. At this point we could copy and paste the join command from the cp node. That
-command only works for 2 hours, so we will build our own join should we want to
-add nodes in the future. Find the token on the cp node. The token lasts 2 hours
-by default. If it has been longer, and no token is present you can generate a
-new one with the sudo kubeadm token create command, seen in the following
-command. On the cp node:
-```
-# kubeadm token list
-# kubeadm token create --print-join-command
-```
-
-11. Use the above output on the worker node:
-
-```
-kubeadm join k8scp:6443 --token qsqg38.g9pohmf6pjdw0hkw \
---discovery-token-ca-cert-hash \
-sha256:246ac43b7feb35d39340e1930c263e910f6f95f53be8b983a5b011a19c9e100c
-```
-
-12. To verify if node has joined, run this on the cp:
-```
-$ kubectl get nodes
-```
-
-
 13. To start using your cluster, you need to make the following config changes:
 ```
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config # copy the default
 config to your home directory 
+```
+
+### step 2 - grow the cluser - add worker node(s)
+
+1. At this point we could copy and paste the join command from the cp node. That
+command only works for 2 hours, so we will build our own join should we want to
+add nodes in the future. Find the token on the cp node. The token lasts 2 hours
+by default. If it has been longer, and no token is present you can generate a
+new one with the sudo kubeadm token create command, seen in the following
+command. On the cp node:
+
+```
+# kubeadm token list
+# kubeadm token create --print-join-command
+```
+
+2. Use the above output on the worker node:
+
+```
+kubeadm join k8scp:6443 --token qsqg38.g9pohmf6pjdw0hkw \
+--discovery-token-ca-cert-hash \
+sha256:W43JLJ2L4HTOFUU4TL4RY9340WGSLKGF9732097448R028280220J
+```
+
+3. To verify if node has joined, run this on the cp:
+```
+$ kubectl get nodes
+```
+
+4. To start using your cluster, you need to make the following config changes:
+```
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config # copy the default
+config to your home directory 
+```
+
+
 ```
 
 sudo chown $(id -u):$(id -g) $HOME/.kube/config

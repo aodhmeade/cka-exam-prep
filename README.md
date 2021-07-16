@@ -1,6 +1,9 @@
 # cka-exam-prep
 - Notes & other relevant material for the Certified Kubernetes Administrator (CKA) exam.  
 
+# Kubernetes
+- [https://kubernetes.io/]
+
 ## Exam details
 - Official guidance: exam details, registration, etc., can be found at [CNCF](https://www.cncf.io/certification/cka/) and at the [Linux  Foundation](https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/), as this is a joint effort between both.   
     - Read: candidate handbook, exam tips, curriculum overview, faqs. 
