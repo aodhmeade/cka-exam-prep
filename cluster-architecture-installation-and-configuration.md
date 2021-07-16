@@ -376,8 +376,8 @@ sudo systemctl restart kubelet
 
 # **6. Implement etcd backup and restore**
 
-[https://etcd.io/]
-[https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/#backing-up-an-etcd-cluster]
+- [https://etcd.io/]
+- [https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/#backing-up-an-etcd-cluster]
 
 - etcd is an open source distributed key-value store used as Kubernetes' backing store for all cluster
   data (i.e. cluster state data, metadata, cluster config data).
@@ -399,7 +399,6 @@ sudo systemctl restart kubelet
 - backup can be accomplished in two ways: etcd built-in snapshot or volume
   snapshot.
 
-
 ## Built-in snapshot method:
 
 - Firstly, locate the etcd pods on the control plane node:
@@ -414,16 +413,15 @@ kubectl -n kube-system exec -it etcd-<Tab> -- sh
 
 ```
 etcdctl -h  #<-- view options and arguments available to ectdctl
-etcdctl -c  #<-- to get version
+etcdctl version  #<-- to get version
 ```
-
 - In order to take a snapshot, you need to authenticate via certificates.  Check
   the configuration file on the control plane node for the 3 required files
   (trusted-ca-file, cert-file, and key-file).
 ```
 cat /etc/kubernetes/manifests/etcd.yaml
 ```
-```
+
 - These files can be viewed on an etcd Pod at:
 ```
 cd /etc/kubernetes/pki/etcd
