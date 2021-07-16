@@ -374,7 +374,11 @@ sudo systemctl restart kubelet
 
 
 
-## 6.  Implement etcd backup and restore                                  
+# **6. Implement etcd backup and restore**
+
+[https://etcd.io/]
+[https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/#backing-up-an-etcd-cluster]
+
 - etcd is an open source distributed key-value store used as Kubernetes' backing store for all cluster
   data (i.e. cluster state data, metadata, cluster config data).
 - containerised workloads (distributed) have complex management requirements as
@@ -395,34 +399,89 @@ sudo systemctl restart kubelet
 - backup can be accomplished in two ways: etcd built-in snapshot or volume
   snapshot.
 
-kubectl -n kube-system get pods
 
-Built-in snapshot:
+## Built-in snapshot method:
+
+- Firstly, locate the etcd pods on the control plane node:
+```
+kubectl get pods -n kube-system
+```
+
+- Interact with etcd by using etcdctl from inside an etcd Pod.
+```
+kubectl -n kube-system exec -it etcd-<Tab> -- sh
+```
 
 ```
-Step 1: take the snapshot using etcdctl. With etcdctl, you can specify a number
-of options, such as endpoint, certificates, etc. Cert/keyfile info can be
-obtained by describing the etcd pod or by checking
-/etc/kubernetes/manifests/etcd.yaml
+etcdctl -h  #<-- view options and arguments available to ectdctl
+etcdctl -c  #<-- to get version
+```
 
-ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 \
-  --cacert=<trusted-ca-file> --cert=<cert-file> --key=<key-file> \
-    snapshot save <backup-file-location>
+- In order to take a snapshot, you need to authenticate via certificates.  Check
+  the configuration file on the control plane node for the 3 required files
+  (trusted-ca-file, cert-file, and key-file).
+```
+cat /etc/kubernetes/manifests/etcd.yaml
+```
+```
+- These files can be viewed on an etcd Pod at:
+```
+cd /etc/kubernetes/pki/etcd
+echo *
+```
 
-Step 2: verify the snapshot taken
-sudo ETCDCTL_API=3 etcdctl --write-out=table snapshot status snapshot.db # you
-should see output similar to:
+- Check the health of etcd
+```
+student@control-plane:~$ kubectl -n kube-system exec -it etcd-control-plane -- sh \
+-c "ETCDCTL_API=3 \
+ETCDCTL_CACERT=/etc/kubernetes/pki/etcd/ca.crt \
+ETCDCTL_CERT=/etc/kubernetes/pki/etcd/server.crt \
+ETCDCTL_KEY=/etc/kubernetes/pki/etcd/server.key \
+etcdctl endpoint health"
+```
+- output should be similar to:
+```
+127.0.0.1:2379 is healthy: successfully committed proposal: took = 79.649196m
+```
+- Determine how many db's are part of the etcd cluster. 3 to 5 are common in a
+  production enviroment to provide 50%+1 quorum
 
+```
+kubectl -n kube-system exec -it etcd-control-plane -- sh -c "ETCDCTL_API=3 \
+ETCDCTL_CACERT=/etc/kubernetes/pki/etcd/ca.crt
+ETCDCTL_CERT=/etc/kubernetes/pki/etcd/server.crt \
+ETCDCTL_KEY=/etc/kubernetes/pki/etcd/server.key \
+etcdctl --endpoints=https://127.0.0.1:2379 member list -w table"
+```
+- if you see 'IS LEARNER' equal to true, it means one of the etcd db's has not
+  caught up with the leader db.  If it is false, it means it's ok.  
+
+
+- Take the snapshot.
+```
+ETCDCTL_API=3 etcdctl snapshot save <backup-file> \
+  --cacert=<trusted-ca-file> --cert=<cert-file> --key=<key-file>
+```
+
+- verify the snapshot taken
+```
+sudo ETCDCTL_API=3 etcdctl --write-out=table snapshot status snapshot.db 
+```
+- you should see output similar to:
+```
 +----------+----------+------------+------------+
 |   HASH   | REVISION | TOTAL KEYS | TOTAL SIZE |
 +----------+----------+------------+------------+
 | fe01cf57 |       10 |          7 | 2.1 MB     |
 +----------+----------+------------+------------+
+```
+
 
 Step 3: restore, etcd supports restoring from snapshots that are taken from an
 etcd process of the major.minor version.
-
+```
 ETCDCTL_API=3 etcdctl snapshot restore snapshot.db
+```
 
 
 
