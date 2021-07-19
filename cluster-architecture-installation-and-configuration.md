@@ -7,10 +7,11 @@
 | 5.  Perform a version upgrade on a Kubernetes cluster using Kubeadm    |   |
 | 6.  Implement etcd backup and restore                                  |   |
 
-#**1. Manage role based access control (RBAC)**               
 
-- [official - kubernetes.io](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
-- [other - bitnami tutorials](https://docs.bitnami.com/tutorials/configure-rbac-in-your-kubernetes-cluster/)
+# 1. Manage role based access control (RBAC)
+
+- [https://kubernetes.io/docs/reference/access-authn-authz/rbac/]
+- [https://docs.bitnami.com/tutorials/configure-rbac-in-your-kubernetes-cluster/]
 
 - To perform any action in a cluster, you need to access the API.
 - Three steps are performed when accessing the API: authentication,
@@ -98,7 +99,7 @@ create a role named "foo" with apiGroups specified.
 ```
 
 
-#**2. Use Kubeadm to install a basic cluster**
+# 2. Use Kubeadm to install a basic cluster
 
 - [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/]
 - [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/]
@@ -125,10 +126,8 @@ create a role named "foo" with apiGroups specified.
 $ kubectl config use-context name-of-new-context
 ```
 
-## install in two steps: 1 - install a control plane, 2 - grow the cluster by
-adding a worker node.
-
-- Note: steps performed using two GCP virtual machines running Ubuntu 18.04.
+## Installation end goal: one control plane node and one worker node.
+## steps performed using two virtual machines running Ubuntu 18.04.
 
 ### Step 1 - install a control plane node
 
@@ -154,9 +153,13 @@ sudo apt update && sudo apt upgrade -y
  sudo apt install -y docker.io
 ```
 
-5. Configure Cgroup drivers
+5. Configure Cgroup drivers.  Both the container runtime and the kubelet have a
+property called "cgroup driver", which is important with respect to the
+management of cgroups on Linux. Note: matching the container runtime and the
+kubelet cgroup drivers is required, otherwise the kubelet process will fail.
 
-[https://kubernetes.io/docs/setup/production-environment/container-runtimes/]
+- [https://kubernetes.io/docs/setup/production-environment/container-runtimes/]
+- [https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/]
 
 ```
 cat << EOF | sudo tee /etc/docker/daemon.json
@@ -282,12 +285,76 @@ kubectl get po -n kube-system # inspect pods to see if weavenet pods running
 ... come back to thi ... 
 ```
 
-## **3.  Manage a highly-available Kubernetes cluster**                       
+# 3. Manage a highly-available Kubernetes cluster
+
+[https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/ha-topology/]
+[https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/]
+
+- You can set up a highly-available Kubernetes cluster as follows:
+    - with stacked control plane nodes, where etcd nodes are colocated with
+      control plane nodes
+    - with external etcd nodes, where etcd runs on separate nodes from the
+      control plane
+
+- Note: For both methods you need this infrastructure:
+
+    - Three machines that meet kubeadm's minimum requirements for the control-plane nodes
+    - Three machines that meet kubeadm's minimum requirements for the workers
+    - Full network connectivity between all machines in the cluster (public or private network)
+    - sudo privileges on all machines
+    - SSH access from one device to all nodes in the system
+    - kubeadm and kubelet installed on all machines. kubectl is optional.
+
+- For the external etcd cluster only, you also need:
+    - Three additional machines for etcd members
+    - First steps for both method 
+
+- One way to gain HA is to use the 'kubeadm' command and join at least 2 control
+  plane servers to the cluster. The command is similar to joining a worker node
+  to the cluster except it includes some additional flags (--control-plane flag
+  and a certificate-key flag). Note: the key will likely need to be regenerated
+  if the control plane nodes are added 2 hours after the cluster in initialised.
+
+## Join Control Plane Nodes
+- edit /etc/hosts on all nodes to ensure alias is set ... come back to this (if
+  including load balancer step ... maybe not required for exam)
+- on the first cp, create the tokens and hashes that are required to join the
+  cluster
+```
+sudo kubeadm token create
+```
+- create a new SSL hash
+```
+openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin
+-outform der 2>/dev/null | openssl dgst -sha256 -hex | sed's/ˆ.* //'
+
+```
+- create a new cp certificate to join as a cp instead of a worker
+```
+sudo kubeadm init phase upload-certs --upload-certs
+```
+- on the second cp use the previous output to build the kubeadm join command
+```
+sudo kubeadm join k8scp:6443
+
+```
+- to verify, run the following on the first cp node:
+```
+kubectl get nodes
+```
+- copy over the config files as suggested in the output
+
+## Simulate a node failure
+- shutdown docker on node that shows 'IS LEADER' set to true
+```
+sudo systemctl stop docker.service
+```
+- check the logs to see updates referring to leader loss.
+
+- view the status using etcdctl
 
 
-
-
-## **4. Provision underlying infrastructure to deploy a Kubernetes cluster**
+# 4. Provision underlying infrastructure to deploy a Kubernetes cluster
 - cloud, multi-cloud, on-premises, hybrid, combinaton thereof.
 - possibly not tested in the exam ... review
 
@@ -295,7 +362,7 @@ kubectl get po -n kube-system # inspect pods to see if weavenet pods running
 
 
 
-## **5.  Perform a version upgrade on a Kubernetes cluster using Kubeadm**
+# 5.  Perform a version upgrade on a Kubernetes cluster using Kubeadm
 - if you build your cluster with kubeadm, you also have the option to upgrade
   the cluster using the kubeadm upgrade command.
 - skipping minor versions when upgrading is unsupported.
@@ -374,13 +441,13 @@ sudo systemctl restart kubelet
 
 
 
-# **6. Implement etcd backup and restore**
+# 6. Implement etcd backup and restore
 
 - [https://etcd.io/]
 - [https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/#backing-up-an-etcd-cluster]
 
 - etcd is an open source distributed key-value store used as Kubernetes' backing store for all cluster
-  data (i.e. cluster state data, metadata, cluster config data).
+  data (i.e. state data, metadata, config data).
 - containerised workloads (distributed) have complex management requirements as
   they grow.  Kubernetes simplifies the process of managing these workloads by
   co-ordinating tasks which run on mulitple machines in multiple locations.  It
@@ -463,14 +530,18 @@ ETCDCTL_API=3 etcdctl snapshot save <backup-file> \
 
 - verify the snapshot taken
 ```
-sudo ETCDCTL_API=3 etcdctl --write-out=table snapshot status snapshot.db 
+student@control-plane:~$ kubectl -n kube-system exec -it etcd-control-plane --
+sh \
+-c "ETCDCTL_API=3 etcdctl --write-out=table snapshot status
+/var/lib/etcd/snapshot.db"
+
 ```
 - you should see output similar to:
 ```
 +----------+----------+------------+------------+
 |   HASH   | REVISION | TOTAL KEYS | TOTAL SIZE |
 +----------+----------+------------+------------+
-| fe01cf57 |       10 |          7 | 2.1 MB     |
+| fe01cf57 |    34018 |       968  | 3.1 MB     |
 +----------+----------+------------+------------+
 ```
 
