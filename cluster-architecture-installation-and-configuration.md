@@ -126,8 +126,7 @@ create a role named "foo" with apiGroups specified.
 $ kubectl config use-context name-of-new-context
 ```
 
-## Installation end goal: one control plane node and one worker node.
-## steps performed using two virtual machines running Ubuntu 18.04.
+## Cluster installation end goal: one control plane node and one worker node. Steps performed using two virtual machines running Ubuntu 18.04.
 
 ### Step 1 - install a control plane node
 
@@ -287,8 +286,8 @@ kubectl get po -n kube-system # inspect pods to see if weavenet pods running
 
 # 3. Manage a highly-available Kubernetes cluster
 
-[https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/ha-topology/]
-[https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/]
+- [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/ha-topology/]
+- [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/]
 
 - You can set up a highly-available Kubernetes cluster as follows:
     - with stacked control plane nodes, where etcd nodes are colocated with
@@ -358,7 +357,13 @@ sudo systemctl stop docker.service
 - cloud, multi-cloud, on-premises, hybrid, combinaton thereof.
 - possibly not tested in the exam ... review
 
-
+- you can download kubernetes and deploy a Kubernetes cluster on a local
+  machine, in your own data centre, into a public cloud.  
+- public cloud providers also offer managed Kubernetes services if you do not
+  want to manage the cluster yourself (e.g. Elastic Kubernetes Service from AWS
+  or Google Kubernetes Engine from google).
+- For critical workloads to run on a production-grade set up see
+  [https://kubernetes.io/docs/setup/production-environment/]
 
 
 
@@ -376,45 +381,50 @@ sudo systemctl stop docker.service
 - determine which version to upgrade to.  Find the latest stable kubernetes
   version using OS package manager ('apt' as the exam is based on Ubuntu):
 - useful to mark the versions of kubeadm, kubectl and kubelet before you begin.
-```
-sudo apt-mark hold kubeadm kubelet kubectl
-```
 
+- Firstly, update the package data for apt.
 ```
-apt-update
-apt-cache kubeadm
-# find the latest 1.21 version in the list
-# it should look like 1.21.x-00, where x is the latest patch.
+sudo apt update
 ```
+- Check your current versions
+```
+sudo kubeadm version
+```
+- Find the latest kubernetes package available. It should look like 1.21.x-00, where x is the latest patch.
+```
+sudo apt-cache kubeadm
+```
+- Remove the hold placed on kubeadm:
+```
+sudo apt-mark unhold kubeadm
+```
+- Update the package. Replace the x in the 1.21.x-00 with latest patch version
+```
+sudo apt-get install -y kubeadm=1.21.x-00
+```
+- Place a hold on the package again to prevent further updates:
+```
+sudo apt-mark hold kubeadm
+```
+- Verify the version of 'kubeadm' installed:
+```
+sudo kubeadm version
+```
+- Note:
 - upgrading control plane nodes should be done one node at a time
 - the control plane must have the /etc/kubernetes/admin.conf file.
 
-- update kubeadm
+- To prepare the control plane for an update, you first need to evict as many
+  pods as possible.  You can ignore daemonsets (Calico). 
 ```
-# replace x in the 1.21.x-00 with latest patch version
-apt-mark unhold kubeadm && \
-apt-get update && apt-get install -y kubernetes=1.21.x-00 && \
-apt-mark hold kubeadm
+kubectl drain k8scp --ignore-daemonsets
 ```
-- verify that the download works and has the expected version
+- You can use the 'upgrade plan' argument to check the existing cluster, to see
+  if it can be upgraded.
 ```
-kubeadm version
-# might be good practice to mark this newer version again with sudo apt-mark
-# hold kubeadm
-```
-- drain first node and execute upgrade
-```
-kubectl drain <node> --ignore-daemonsets
+sudo kubeadm upgrade plan
 ```
 
-
-
-
-- verify the upgrade plan. This command checks that your cluster can be upgrade,
-  and fetches versions you can upgrade to.
-```
-kubeadm upgrade plan
-```
 - Note: kubeadm upgrade also automatically renews the certificates that it
   manages on the node.
 - Note: if the kubeadm upgrade plan output shows any component configs that
@@ -423,15 +433,50 @@ kubeadm upgrade plan
 - Next, choose a version to upgrade to:
 ```
 sudo kubeadm upgrade apply v1.21.x
--
-# once the command finishes you should see:
+```
+- once the command finishes you should see:
+```
 [upgrade/successful] SUCCESS! Your cluster was upgraded to "v1.21.x". Enjoy!
 
 [upgrade/kubelet] Now that your control plane is upgraded, please proceed with
 upgrading your kubelets if you haven't already done so.
 ```
-- upgrade kubelet
+- Check the status of the nodes:
 ```
+kubectl get nodes
+```
+- Release the hold on kubelet and kubectl:
+```
+sudo apt-mark unhold kubelet kubectl
+```
+- Upgrade both packages to the same version as kubeadm:
+```
+sudo apt-get install -y kubelet=1.21.x-00 kubectl=1.21.x-00
+```
+- Re-apply the hold so other updates don't update the Kubernetes version.
+```
+sudo apt-mark hold kubelet kubectl
+```
+- Restart the daemons
+```
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+```
+- Verify that the control plane node has been updated to the new version.  Then
+  update the other control plane nodes using the same process as above. Note:
+  instead of using 'kubeadm upgrade apply', you will use 'kubeadm upgrade node'.
+
+- Make the control plane availabe for the scheduler:
+```
+kubectl uncordon k8scp
+```
+- Verify that the control plane is in a ready status:
+```
+kubectl get nodes
+```
+
+
+
 sudo apt-get install --only-upgrade kubelet
 sudo systemctl daemon-reload
 sudo systemctl restart kubelet
