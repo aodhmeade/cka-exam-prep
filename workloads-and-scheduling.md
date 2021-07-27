@@ -10,7 +10,7 @@
 
 
 # **1.  Understand deployments and how to perform rolling update and rollbacks**
-[https://kubernetes.io/docs/concepts/workloads/controllers/deployment/]
+- [https://kubernetes.io/docs/concepts/workloads/controllers/deployment/]
 
 ## Deployments
 - A 'Deployment' provides declaritive updates for Pods and ReplicaSets.
@@ -112,12 +112,32 @@ Rollback
   deployment.v1.apps/nginx-deployment --revision=2'.
 - To undo the current rollout and rollback to the previous revision run,
   'kubectl rollout undo deployment.v1.apps/nginx-deployment'
-
+- To rollback to a specific revision:
+<details>
+<summary>
+example
+</summary>
+<p>
+```
+kubectl rollout history deploy/nginx-deployment --to-revision=1
+```
 
 # **2.  Use ConfigMaps and Secrets to configure applications**
 ## ConfigMaps
 
-[https://kubernetes.io/docs/concepts/configuration/configmap/] 
+- [https://kubernetes.io/docs/concepts/configuration/configmap/] 
+- [https://kubernetes.io/docs/concepts/storage/volumes/]
+
+- The ephemeral nature of containers can prove problematic for non-trivial
+  applications when you need a way to share files/info between containers inside
+  a Pod. The Kubernetes 'volume' abstraction is designed to solve the problems
+  of data loss and of sharing data between containers.
+
+- Kubernetes supports many types of volumes (a ConfigMap and a Secret being just
+  two examples). "At its core, a volume is a directory, possibly with some data
+  in it, which is accessible to the containers in a pod. How that directory
+  comes to be, the medium that backs it, and the contents of it are determined
+  by the particular volume type used" (kubernetes.io).
 
 - A ConfigMap is an API object used to store non-confidential data in key-value
   pairs. Pods can consume ConfigMaps as environment variables, cli arguments, or
@@ -135,6 +155,9 @@ Rollback
 - The Pod and the ConfigMap must be in the same 'namespace' and the order of
   execution matters, i.e. the ConfigMap must be already created for a Pod to
   reference it.
+
+- 3 ways a ConfigMap can consume data - from a file, from a directory of files
+  or from a literal value.
 
 - Imperative: The basic syntax for creating a config map is:
 ```
@@ -161,7 +184,7 @@ kubectl create configmap my-config-map-test --from-literal=website=kubernetes.io
 
 ## Secrets
 
-[https://kubernetes.io/docs/concepts/configuration/secret/]
+- [https://kubernetes.io/docs/concepts/configuration/secret/]
 
 - A 'Secret' is a similar API resource to a 'ConfigMap'.
 
@@ -472,8 +495,14 @@ spec:
   type: Container
 ```
 
+```
+kubectl replace -f replace.yaml
+kubectl logs <pod-name>
+kubectl -n=<namespace-name> get LimitRange
+```
 
-# **6.  Awareness of manifest management and common templating tools**
+
+# 6.  Awareness of manifest management and common templating tools
 
 [https://github.com/helm/helm]
 

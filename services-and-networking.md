@@ -7,25 +7,42 @@
 | 5.  Know how to configure and use CoreDNS                                    |
 | 6.  Choose an appropriate container network interface plugin                 |
 
+- [https://cloud.google.com/kubernetes-engine/docs/concepts/network-overview]
+- [https://github.com/IBM/kubernetes-networking/blob/master/pdf/KubernetesNetworking-Lecture.pdf]
+- [https://kubernetes.io/docs/concepts/cluster-administration/networking/]
+- [https://www.youtube.com/watch?v=InZVNuKY5GY&list=PLj6h78yzYM2O1wlsM-Ma-RYhfT5LKq0XC]
+- [https://www.youtube.com/watch?v=tq9ng_Nz9j8]
 
-[https://cloud.google.com/kubernetes-engine/docs/concepts/network-overview]
-[https://github.com/IBM/kubernetes-networking/blob/master/pdf/KubernetesNetworking-Lecture.pdf]
-[https://www.youtube.com/watch?v=InZVNuKY5GY&list=PLj6h78yzYM2O1wlsM-Ma-RYhfT5LKq0XC]
-[https://www.youtube.com/watch?v=tq9ng_Nz9j8]
+- Networking plays a central role in distributed systems and as such is central to
+Kubernetes. The Kubernetes network model relies heavily on IP addresses. Every
+Pod gets its own IP address. In doing so, Kubernetes applies the following
+constraints:
 
-**Note**
-The Kubernetes networking model relies heavily on IP addresses.  Services, Pods,
-containers, and nodes communicate using IP addresses and ports.  Kubernetes
-provides different types of load balancing to direct traffic to the correct
-Pods.
+    1. all pods on a node can communicate with all pods on all nodes without using
+    Network Address Translation (NAT).
+    2. nodes can communicate with pods without NAT.
+    3. the IP of a pod that the other pods see for it, is the same IP it sees for itself.
+
+- Because of these constraints, there are 4 distinct networking problems that
+  Kubernetes has to address:
+
+    1. container-to-container 
+    2. Pod-to-Pod 
+    3. Pod-to-Service
+    4. External-to-Service
+
+
+Note: Containers withing a pod share their network namespace (including IP
+address and MAC address).  This means that containers within a pod can reach
+each other's ports on 'localhost'.
+
 
 **Terms**
 - ClusterIP: The IP address assigned to a Service. In other documents, it may be
   called the "Cluster IP". This address is stable for the lifetime of the
   Service, as discussed in the Services section in this topic.
 
-- Pod IP: The IP address assigned to a given Pod. This is ephemeral, as
-  discussed in the Pods section in this topic.
+- Pod IP: The IP address assigned to a given Pod. This is ephemeral.
 
 - Node IP: The IP address assigned to a given node.
 
@@ -47,14 +64,7 @@ Pods.
 
 
 
-
-
-
-
-
-
-
-# **1.  Understand host networking configuration on the cluster nodes**
+# **1. Understand host networking configuration on the cluster nodes**
 
 
 
@@ -67,31 +77,9 @@ Pods.
 
 
 # **2.  Understand connectivity between Pods**
+
 [https://kubernetes.io/docs/concepts/cluster-administration/networking/]
 
-Kubernetes tries to address 4 distinct networking problems:
-
-1. Highly-coupled container-to-container communications: this is solved by Pods and
-localhost communications.
-2. Pod-to-Pod communicationn: 
-3. Pod-to-Service communications: this is covered by services.
-4. External-to-Service communications: this is covered by services.
-
-Kubernetes imposes the following fundamental requirements on any networking
-implementation (barring any intentional network segmentation policies):
-
-- pods on a node can communicate with all pods on all nodes without NAT
-- agents on a node (e.g. system daemons, kubelet) can communicate with all pods on
-that node
-
-Note: For those platforms that support Pods running in the host network (e.g.
-Linux):
-
-- pods in the host network of a node can communicate with all pods on all nodes
-without NAT
-
-There are a number of ways this networking model can be implemented.  See
-section 6 below.
 
 
 
@@ -261,8 +249,8 @@ Notes:
 
 # **4.  Know how to use Ingress controllers and Ingress resources**      
 
-[https://kubernetes.io/docs/concepts/services-networking/ingress/] 
-[https://www.ibm.com/cloud/blog/kubernetes-ingress]
+- [https://kubernetes.io/docs/concepts/services-networking/ingress/] 
+- [https://www.ibm.com/cloud/blog/kubernetes-ingress]
 
 - Ingress is another way for Kubernetes to tackle routing.
 
@@ -349,7 +337,7 @@ helm search hub ingress
 - Test the host by using curl
 
 # **5.  Know how to configure and use CoreDNS**
-[https://coredns.io/]
+- [https://coredns.io/]
 
 - Kubernetes creates DNS records for Services and Pods. You can contact services
   with consistent DNS names instead of IP addresses.
@@ -394,10 +382,10 @@ kubectl -n kube-system get configmap coredns -o yaml
 
 # **6.  Choose an appropriate container network interface plugin**
 
-[https://github.com/containernetworking/cni]
-[https://www.redhat.com/sysadmin/cni-kubernetes]
-[https://kubernetes.io/docs/concepts/cluster-administration/addons/#networking-and-network-policy]
-[https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/]
+- [https://github.com/containernetworking/cni]
+- [https://www.redhat.com/sysadmin/cni-kubernetes]
+- [https://kubernetes.io/docs/concepts/cluster-administration/addons/#networking-and-network-policy]
+- [https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/]
 
 - To provide container networking, Kubernetes uses a CNI plugin.  It is
   mandatory for the cluster to be operational.

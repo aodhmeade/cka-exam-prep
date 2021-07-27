@@ -135,11 +135,18 @@ $ kubectl config use-context name-of-new-context
 sudo -i
 ```
 
-2. Disable swap on all nodes (note why exactly ...). Optional: update the file
-system table file to ensure it is off on all reboots.
+2. Disable swap on all nodes (With swap enabled, it's problematic for disk io
+mangement, isolation management. See github issues for some of the discussion around this area
+[https://github.com/kubernetes/kubernetes/issues/53533]. 
 ```
-swapoff -a
-sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+sudo swapoff -a
+```
+Optional: update the file system table file to ensure it is off on all reboots.
+Requires reboot to take effect.
+
+```
+verify first
+sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 ```
 
 3. Start by updating and upgrading software packages
@@ -184,7 +191,7 @@ sudo systemctl restart docker
 7. Add a new repo for Kubernetes. Create and edit as follows:
 ```
 vim /etc/apt/sources.list.d/kubernetes.list
-'deb    http://apt.kubernetes.io/   kubernetes-xenial   main'   #<-- add this
+deb    http://apt.kubernetes.io/   kubernetes-xenial   main   #<-- add this
 line to the file
 ```
 
@@ -212,6 +219,7 @@ https://packages.cloud.google.com/apt/doc/apt-key.gpg \
 11. Mark & hold the relevant packages so they are not upgraded:
 ```
 # apt-mark hold kubeadm kubelet kubectl
+apt-mark showhold
 ```
 
 12. Get cp IP address and add to /etc/hosts
@@ -229,6 +237,7 @@ config to your home directory
 ```
 
 ### step 2 - grow the cluser - add worker node(s)
+- follow all the steps above except initialising, i.e. kubeadm init
 
 1. At this point we could copy and paste the join command from the cp node. That
 command only works for 2 hours, so we will build our own join should we want to

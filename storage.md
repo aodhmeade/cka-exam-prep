@@ -5,7 +5,6 @@
 | 3.  Understand persistent volume claims primitive                         |
 | 4.  Know how to configure applications with persistent storage            |
 
-... some background info ...
 - Container engines have traditionally not offered storage that outlives the
   container.  Containers in essence are considered transient.  Therefore you
   need a place to persistently store information.
@@ -24,13 +23,14 @@
   containerised workloads on container orchestration systems like Kubernetes.
 - Two important volumes types to note are 'emptyDir' and 'hostPath' volume
   types.  The storage provider in each case is the Localhost and each has its own use case.
-    - emptyDir: is first created when a pod is assigned to a node, and exists as
-      long as that pod is running on that node.  It is initially empty and all
-      containers in the same pod, can r/w in the same emptyDir volume.  When a
-      pod is deleted or restarted the data is lost.  Depending on your
-      environment, emptyDir vols are stored on whatever medium that backs the
-      node, such as disk, or network storage.  You can also set emptyDir to run
-      off RAM (Kubernetes mounts a tmpfs in this instance).
+
+- emptyDir: is first created when a pod is assigned to a node, and exists as
+  long as that pod is running on that node.  It is initially empty and all
+  containers in the same pod, can r/w in the same emptyDir volume.  When a pod
+  is deleted or restarted the data is lost.  Depending on your environment,
+  emptyDir vols are stored on whatever medium that backs the node, such as disk,
+  or network storage.  You can also set emptyDir to run off RAM (Kubernetes
+  mounts a tmpfs in this instance).
 
       ```
       apiVersion: v1
@@ -61,12 +61,12 @@
       ```
 
 
-    - hostPath: volume type mounts a file or directory from the host node's
-      filesystem into your pod.  Though generally not recommended, they can
-      be used for some use cases.  When configuring, note that the 'path'
-      property is required.  You also can specify an optional 'type'.  Some
-      supported types are: DirectoryOrCreate, Directory, FileOrCreate, File,
-      Socket, CharDevice, BlockDevice.
+- hostPath: volume type mounts a file or directory from the host node's
+  filesystem into your pod.  Though generally not recommended, they can be used
+  for some use cases.  When configuring, note that the 'path' property is
+  required.  You also can specify an optional 'type'.  Some supported types are:
+  DirectoryOrCreate, Directory, FileOrCreate, File, Socket, CharDevice,
+  BlockDevice.
 
     ```
     apiVersion: v1
@@ -89,10 +89,10 @@
           type: Directory
    ``` 
 
-# ** 1.  Understand storage classes, persistent volumes **
+# **1.  Understand storage classes, persistent volumes**
 
-[https://kubernetes.io/docs/concepts/storage/persistent-volumes/]
-[https://kubernetes.io/docs/concepts/storage/storage-classes/]
+- [https://kubernetes.io/docs/concepts/storage/persistent-volumes/]
+- [https://kubernetes.io/docs/concepts/storage/storage-classes/]
 
 ## persistent volumes
 - a 'PersistentVolume' (pv) is a storage abstraction used to retain data longer
@@ -141,19 +141,18 @@ parameters:
 
 
 
-# ** 2.  Understand volume mode, access modes and reclaim policies for volumes
-# **
+# **2. Understand volume mode, access modes and reclaim policies for volumes**
 
-[https://kubernetes.io/docs/concepts/storage/persistent-volumes/]
+- [https://kubernetes.io/docs/concepts/storage/persistent-volumes/]
 
-## volumeMode
+### volumeMode
 - Kubernetes supports two volumeModes of PersistentVolumes: Filesystem and
   Block.
 - volumeMode is an optional API parameter. Filesystem is the default mode used
   when volumeMode parameter is omitted.
 
 
-## Access Modes
+### Access Modes
 
 The access modes are:
 
@@ -167,7 +166,7 @@ In the CLI, the access modes are abbreviated to:
     ROX - ReadOnlyMany
     RWX - ReadWriteMany
 
-## Reclaim Policies
+### Reclaim Policies
 When a user is done with their volume, they can delete the PVC objects from the
 API that allows reclamation of the resource.  The reclaim policy for a
 PersistentVolume tells the cluster what to do with the volume after it has been
@@ -183,13 +182,15 @@ Currently, only NFS and HostPath support recycling. AWS EBS, GCE PD, Azure Disk,
 and Cinder volumes support deletion.
 
 
-# ** 3.  Understand persistent volume claims primitive **
+# **3.  Understand persistent volume claims primitive**
 
 As per no.1
 
-# ** 4.  Know how to configure applications with persistent storage **
 
-```
+
+
+# **4.  Know how to configure applications with persistent storage**
+
 
 
 
