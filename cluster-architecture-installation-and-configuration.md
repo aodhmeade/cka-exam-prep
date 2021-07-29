@@ -28,11 +28,7 @@
     - bind the user to the role
     - verify the user has limited access
 
-- There are four resources in this API group:
-    - Role
-    - ClusterRole
-    - RoleBinding
-    - ClusterRoleBinding
+- There are four resources in this API group: Role, ClusterRole, RoleBinding, and ClusterRoleBinding
 
 - To manage RBAC, you need:
     - Rules: this is an operation (verb) that can be carried out on a resource.
@@ -117,10 +113,9 @@ roleRef:
   name-of-new-context`.
 
 ### installation steps for a basic cluster 
-- Note: one control plane node and one worker node. 
-- Steps performed using two virtual machines running Ubuntu 18.04 on GKE.
-- installation broken into two sections. Section 1: for control plane. Section
-  2: for worker node.
+- Aim: one control plane node and one worker node. 
+- Env: performed using two virtual machines running Ubuntu 18.04 on GCE.
+- Steps: performed as follows: Section 1: for control plane. Section 2: for worker node.
 
 #### Section 1 - install a control plane node
 
@@ -130,7 +125,8 @@ roleRef:
 mangement, isolation management, etc. See github issues for some of the discussion around this area
 e.g. [https://github.com/kubernetes/kubernetes/issues/53533]. 
   1. Optional: update the file system table file to ensure it is off on all
-  reboots. Requires reboot to take effect, `sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab`
+  reboots. Requires reboot to take effect, 
+  `sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab`
 
 1. Start by updating and upgrading software packages, `sudo apt update && sudo apt upgrade -y`
 
@@ -141,8 +137,8 @@ property called "cgroup driver", which is important with respect to the
 management of cgroups on Linux. Note: matching the container runtime and the
 kubelet cgroup drivers is required, otherwise the kubelet process will fail.
 
-- [https://kubernetes.io/docs/setup/production-environment/container-runtimes/]
-- [https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/]
+    1. [https://kubernetes.io/docs/setup/production-environment/container-runtimes/]
+    1. [https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/]
 
 ```bash
 cat << EOF | sudo tee /etc/docker/daemon.json
@@ -164,10 +160,10 @@ sudo systemctl daemon-reload
 sudo systemctl restart docker
 ```
 
-1. Add a new repo for Kubernetes. Create and edit as follows:
-```
-vim /etc/apt/sources.list.d/kubernetes.list
+1. Add a new repo for Kubernetes. Create and edit as follows: 
+`vim /etc/apt/sources.list.d/kubernetes.list`
 
+```
 deb    http://apt.kubernetes.io/   kubernetes-xenial   main   #<-- add this line to the file
 ```
 
@@ -180,31 +176,34 @@ https://packages.cloud.google.com/apt/doc/apt-key.gpg \
 
 1. Update the new repo, `apt-get update`.
 
-1 Install the necessary software, `sudo apt-get install kubeadm`. 
-- Note: tried installing all three (kubeadm kubelet kubectl).
-- the Kubelet version may never exceed the API server version.  For example, the
-  kubelet running v.1.20.0 should be fully compatible with a 1.21.0 API server,
-  but not vica versa.
+1. Install the necessary software, `sudo apt-get install kubeadm`. 
+    1. Note: tried installing all three (kubeadm kubelet kubectl).
+    1. the Kubelet version may never exceed the API server version.  For
+    example, the kubelet running v.1.20.0 should be fully compatible with a
+    1.21.0 API server, but not vica versa.
 
 1. Mark & hold the relevant packages so they are not upgraded: `apt-mark hold
 kubeadm kubelet kubectl`. Confirm: `apt-mark showhold`.
 
-1 Get cp IP address and add to /etc/hosts
+1. Get the control plane node IP address and add to /etc/hosts
 ```
 hostname -i
+
 vim /etc/hosts
+
 10.128.0.3 k8scp #<-- add this line (change ip to match output from hostname -i)
 ```
 
-13. To start using your cluster, you need to make the following config changes:
+1. To start using your cluster, you need to make the following config changes:
 ```
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config # copy the default
 config to your home directory 
 ```
 
-### step 2 - grow the cluser - add worker node(s)
-- follow all the steps above except initialising, i.e. kubeadm init
+#### Section 2 - grow the cluser - add worker node(s)
+1. follow all the steps above except initialising, i.e. don't run `kubeadm
+init`.
 
 1. At this point we could copy and paste the join command from the cp node. That
 command only works for 2 hours, so we will build our own join should we want to
@@ -214,11 +213,11 @@ new one with the sudo kubeadm token create command, seen in the following
 command. On the cp node:
 
 ```
-# kubeadm token list
-# kubeadm token create --print-join-command
+kubeadm token list
+kubeadm token create --print-join-command
 ```
 
-2. Use the above output on the worker node:
+1. Use the above output on the worker node:
 
 ```
 kubeadm join k8scp:6443 --token qsqg38.g9pohmf6pjdw0hkw \
@@ -226,12 +225,9 @@ kubeadm join k8scp:6443 --token qsqg38.g9pohmf6pjdw0hkw \
 sha256:W43JLJ2L4HTOFUU4TL4RY9340WGSLKGF9732097448R028280220J
 ```
 
-3. To verify if node has joined, run this on the cp:
-```
-$ kubectl get nodes
-```
+1. To verify if node has joined, run this on the cp: `kubectl get nodes`.
 
-4. To start using your cluster, you need to make the following config changes:
+1. To start using your cluster, you need to make the following config changes:
 ```
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config # copy the default
@@ -239,8 +235,8 @@ config to your home directory
 ```
 
 
-```
 
+```
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 Set up Pod Networking
@@ -260,7 +256,7 @@ kubectl get po -n kube-system # inspect pods to see if weavenet pods running
 ... come back to thi ... 
 ```
 
-# 3. Manage a highly-available Kubernetes cluster
+# **3. Manage a highly-available Kubernetes cluster**
 
 - [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/ha-topology/]
 - [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/]
@@ -290,46 +286,39 @@ kubectl get po -n kube-system # inspect pods to see if weavenet pods running
   and a certificate-key flag). Note: the key will likely need to be regenerated
   if the control plane nodes are added 2 hours after the cluster in initialised.
 
-## Join Control Plane Nodes
+### Join Control Plane Nodes
 - edit /etc/hosts on all nodes to ensure alias is set ... come back to this (if
   including load balancer step ... maybe not required for exam)
 - on the first cp, create the tokens and hashes that are required to join the
-  cluster
-```
-sudo kubeadm token create
-```
+  cluster, `sudo kubeadm token create`.
 - create a new SSL hash
 ```
 openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin
 -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed's/ˆ.* //'
-
 ```
 - create a new cp certificate to join as a cp instead of a worker
-```
-sudo kubeadm init phase upload-certs --upload-certs
-```
-- on the second cp use the previous output to build the kubeadm join command
-```
-sudo kubeadm join k8scp:6443
+`sudo kubeadm init phase upload-certs --upload-certs`
 
-```
+- on the second cp use the previous output to build the kubeadm join command
+`sudo kubeadm join k8scp:6443`
+
 - to verify, run the following on the first cp node:
-```
-kubectl get nodes
-```
+`kubectl get nodes`
+
 - copy over the config files as suggested in the output
 
-## Simulate a node failure
+### Simulate a node failure
 - shutdown docker on node that shows 'IS LEADER' set to true
-```
-sudo systemctl stop docker.service
-```
+`sudo systemctl stop docker.service`
+
 - check the logs to see updates referring to leader loss.
 
 - view the status using etcdctl
 
 
-# 4. Provision underlying infrastructure to deploy a Kubernetes cluster
+
+# **4. Provision underlying infrastructure to deploy a Kubernetes cluster**
+
 - cloud, multi-cloud, on-premises, hybrid, combinaton thereof.
 - possibly not tested in the exam ... review
 
@@ -343,7 +332,7 @@ sudo systemctl stop docker.service
 
 
 
-# 5.  Perform a version upgrade on a Kubernetes cluster using Kubeadm
+# **5.  Perform a version upgrade on a Kubernetes cluster using kubeadm**
 - if you build your cluster with kubeadm, you also have the option to upgrade
   the cluster using the kubeadm upgrade command.
 - skipping minor versions when upgrading is unsupported.
@@ -359,47 +348,37 @@ sudo systemctl stop docker.service
 - useful to mark the versions of kubeadm, kubectl and kubelet before you begin.
 
 - Firstly, update the package data for apt.
-```
-sudo apt update
-```
-- Check your current versions
-```
-sudo kubeadm version
-```
+`sudo apt update`
+
+- Check your current versions:
+`sudo kubeadm version`
+
 - Find the latest kubernetes package available. It should look like 1.21.x-00, where x is the latest patch.
-```
-sudo apt-cache kubeadm
-```
+`sudo apt-cache kubeadm`
+
 - Remove the hold placed on kubeadm:
-```
-sudo apt-mark unhold kubeadm
-```
+`sudo apt-mark unhold kubeadm`
+
 - Update the package. Replace the x in the 1.21.x-00 with latest patch version
-```
-sudo apt-get install -y kubeadm=1.21.x-00
-```
+`sudo apt-get install -y kubeadm=1.21.x-00`
+
 - Place a hold on the package again to prevent further updates:
-```
-sudo apt-mark hold kubeadm
-```
+`sudo apt-mark hold kubeadm`
+
 - Verify the version of 'kubeadm' installed:
-```
-sudo kubeadm version
-```
+`sudo kubeadm version`
+
 - Note:
 - upgrading control plane nodes should be done one node at a time
 - the control plane must have the /etc/kubernetes/admin.conf file.
 
 - To prepare the control plane for an update, you first need to evict as many
   pods as possible.  You can ignore daemonsets (Calico). 
-```
-kubectl drain k8scp --ignore-daemonsets
-```
+`kubectl drain k8scp --ignore-daemonsets`
+
 - You can use the 'upgrade plan' argument to check the existing cluster, to see
   if it can be upgraded.
-```
-sudo kubeadm upgrade plan
-```
+`sudo kubeadm upgrade plan`
 
 - Note: kubeadm upgrade also automatically renews the certificates that it
   manages on the node.
@@ -407,9 +386,8 @@ sudo kubeadm upgrade plan
   require manual upgrade, you must provide a config file with replacement
   configs to kubeam upgrade apply via the --config cli flag.
 - Next, choose a version to upgrade to:
-```
-sudo kubeadm upgrade apply v1.21.x
-```
+`sudo kubeadm upgrade apply v1.21.x`
+
 - once the command finishes you should see:
 ```
 [upgrade/successful] SUCCESS! Your cluster was upgraded to "v1.21.x". Enjoy!
@@ -418,41 +396,32 @@ sudo kubeadm upgrade apply v1.21.x
 upgrading your kubelets if you haven't already done so.
 ```
 - Check the status of the nodes:
-```
-kubectl get nodes
-```
+`kubectl get nodes`
+
 - Release the hold on kubelet and kubectl:
-```
-sudo apt-mark unhold kubelet kubectl
-```
+`sudo apt-mark unhold kubelet kubectl`
+
 - Upgrade both packages to the same version as kubeadm:
-```
-sudo apt-get install -y kubelet=1.21.x-00 kubectl=1.21.x-00
-```
+`sudo apt-get install -y kubelet=1.21.x-00 kubectl=1.21.x-00`
+
 - Re-apply the hold so other updates don't update the Kubernetes version.
-```
-sudo apt-mark hold kubelet kubectl
-```
+`sudo apt-mark hold kubelet kubectl`
+
 - Restart the daemons
-```
-sudo systemctl daemon-reload
-sudo systemctl restart kubelet
-```
+`sudo systemctl daemon-reload` and `sudo systemctl restart kubelet`.
+
 - Verify that the control plane node has been updated to the new version.  Then
   update the other control plane nodes using the same process as above. Note:
   instead of using 'kubeadm upgrade apply', you will use 'kubeadm upgrade node'.
 
 - Make the control plane availabe for the scheduler:
-```
-kubectl uncordon k8scp
-```
+`kubectl uncordon k8scp`
+
 - Verify that the control plane is in a ready status:
+`kubectl get nodes`
+
+
 ```
-kubectl get nodes
-```
-
-
-
 sudo apt-get install --only-upgrade kubelet
 sudo systemctl daemon-reload
 sudo systemctl restart kubelet
@@ -462,7 +431,7 @@ sudo systemctl restart kubelet
 
 
 
-# 6. Implement etcd backup and restore
+# **6. Implement etcd backup and restore**
 
 - [https://etcd.io/]
 - [https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/#backing-up-an-etcd-cluster]
@@ -487,17 +456,13 @@ sudo systemctl restart kubelet
 - backup can be accomplished in two ways: etcd built-in snapshot or volume
   snapshot.
 
-## Built-in snapshot method:
+### Built-in snapshot method:
 
 - Firstly, locate the etcd pods on the control plane node:
-```
-kubectl get pods -n kube-system
-```
+`kubectl get pods -n kube-system`
 
 - Interact with etcd by using etcdctl from inside an etcd Pod.
-```
-kubectl -n kube-system exec -it etcd-<Tab> -- sh
-```
+`kubectl -n kube-system exec -it etcd-<Tab> -- sh`
 
 ```
 etcdctl -h  #<-- view options and arguments available to ectdctl
@@ -506,17 +471,17 @@ etcdctl version  #<-- to get version
 - In order to take a snapshot, you need to authenticate via certificates.  Check
   the configuration file on the control plane node for the 3 required files
   (trusted-ca-file, cert-file, and key-file).
-```
-cat /etc/kubernetes/manifests/etcd.yaml
-```
+`cat /etc/kubernetes/manifests/etcd.yaml`
 
 - These files can be viewed on an etcd Pod at:
+
 ```
 cd /etc/kubernetes/pki/etcd
 echo *
 ```
 
 - Check the health of etcd
+
 ```
 student@control-plane:~$ kubectl -n kube-system exec -it etcd-control-plane -- sh \
 -c "ETCDCTL_API=3 \
@@ -526,9 +491,8 @@ ETCDCTL_KEY=/etc/kubernetes/pki/etcd/server.key \
 etcdctl endpoint health"
 ```
 - output should be similar to:
-```
-127.0.0.1:2379 is healthy: successfully committed proposal: took = 79.649196m
-```
+`127.0.0.1:2379 is healthy: successfully committed proposal: took = 79.649196m`
+
 - Determine how many db's are part of the etcd cluster. 3 to 5 are common in a
   production enviroment to provide 50%+1 quorum
 
@@ -549,15 +513,15 @@ ETCDCTL_API=3 etcdctl snapshot save <backup-file> \
   --cacert=<trusted-ca-file> --cert=<cert-file> --key=<key-file>
 ```
 
-- verify the snapshot taken
+- Verify the snapshot taken
 ```
 student@control-plane:~$ kubectl -n kube-system exec -it etcd-control-plane --
 sh \
 -c "ETCDCTL_API=3 etcdctl --write-out=table snapshot status
 /var/lib/etcd/snapshot.db"
-
 ```
 - you should see output similar to:
+
 ```
 +----------+----------+------------+------------+
 |   HASH   | REVISION | TOTAL KEYS | TOTAL SIZE |
@@ -566,12 +530,9 @@ sh \
 +----------+----------+------------+------------+
 ```
 
-
 Step 3: restore, etcd supports restoring from snapshots that are taken from an
-etcd process of the major.minor version.
-```
-ETCDCTL_API=3 etcdctl snapshot restore snapshot.db
-```
+etcd process of the major.minor version:
+`ETCDCTL_API=3 etcdctl snapshot restore snapshot.db`
 
 
 
