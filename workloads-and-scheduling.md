@@ -12,7 +12,7 @@
 # **1.  Understand deployments and how to perform rolling update and rollbacks**
 - [https://kubernetes.io/docs/concepts/workloads/controllers/deployment/]
 
-## Deployments
+### Deployments
 - A 'Deployment' provides declaritive updates for Pods and ReplicaSets.
 
 - The following is an example of a Deployment.  When applied it will create a
@@ -53,7 +53,7 @@ kubectl apply -f https://k8s.io/examples/controllers/nginx-deployment.yaml
 - To see the labels automatically generated for each Pod, run 'kubectl get pods
   --show-labels'.
 
-## Rollouts and Rollbacks
+### Rollouts and Rollbacks
 - A deployment's rollout is triggered if and only if the deployment's Pod
   template (that is, .spec.template) is changed (e.g. if the labels or container
   images of the template are updated). Other updates, such as scaling requests
@@ -119,11 +119,12 @@ example
 </summary>
 <p>
 ```
-kubectl rollout history deploy/nginx-deployment --to-revision=1
+kubectl rollout undo deploy/nginx-deployment --to-revision=1
 ```
 
 # **2.  Use ConfigMaps and Secrets to configure applications**
-## ConfigMaps
+
+### ConfigMaps
 
 - [https://kubernetes.io/docs/concepts/configuration/configmap/] 
 - [https://kubernetes.io/docs/concepts/storage/volumes/]
@@ -182,7 +183,7 @@ kubectl create configmap my-config-map-test --from-literal=website=kubernetes.io
   mounted volume or by using environment variables.
 
 
-## Secrets
+### Secrets
 
 - [https://kubernetes.io/docs/concepts/configuration/secret/]
 
@@ -215,7 +216,7 @@ kubectl create configmap my-config-map-test --from-literal=website=kubernetes.io
 
 - To check for existing Secrets, run 'kubectl get secrets'.
 
-## Create a Secret using a configuration file (declaratively)
+### Create a Secret using a configuration file (declaratively)
 
 - To store 2 strings in a Secret using the 'data' field, convert the strings to
   base64 as follows:
@@ -261,8 +262,7 @@ data:
 echo -n 'my-db-username' > ./username.txt
 echo -n 'my-db-password' > ./password.txt
 
-# note: the -n flag stops a /n char being added to the file and being encoded
-# too.
+#### note: the -n flag stops a /n char being added to the file and being encoded too.
 ```
 
 ```
@@ -373,7 +373,7 @@ kubectl scale deployment nginx-deployment --replicas=10
 'kubectl autoscale deployment nginx-deployment --min=2 --max=5'
 
 
-# 4.  Understand the primitives used to create robust, self-healing, application deployments 
+# **4. Understand the primitives used to create robust, self-healing, application deployments**
 
 - Deployments, ReplicaSets, StatefulSets, DaemonSets, Jobs, CronJobs.
 
@@ -381,11 +381,13 @@ kubectl scale deployment nginx-deployment --replicas=10
 
 
 
-# 5.  Understand how resource limits can affect Pod scheduling
-[https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/]
-[https://cloud.google.com/blog/products/containers-kubernetes/kubernetes-best-practices-resource-requests-and-limits]
+# **5. Understand how resource limits can affect Pod scheduling**
 
-- When talking about managing resources for Containers, there are two terms to
+- [https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/]
+- [https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/]
+- [https://cloud.google.com/blog/products/containers-kubernetes/kubernetes-best-practices-resource-requests-and-limits]
+
+- When talking about managing resources for containers, there are two terms to
   keep in mind: requests and limits.
 
 - When you create a Pod, you can (it's optional) specify how much of each
@@ -498,11 +500,30 @@ spec:
 ```
 kubectl replace -f replace.yaml
 kubectl logs <pod-name>
-kubectl -n=<namespace-name> get LimitRange
+kubectl -n <namespace-name> get LimitRange
+```
+
+### Configure a Pod quota for a namespace
+- the following manifest will limit the number of Pods that can run in a
+  namespace to 2.
+```
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pod-quota-demo
+spec:
+  hard:
+    pods: "2"
+```
+
+- create the ResourceQuota as follows:
+```
+kubectl apply -f pod-quota-demo.yaml --namespace=<namespace-name>
 ```
 
 
-# 6.  Awareness of manifest management and common templating tools
+
+# **6.  Awareness of manifest management and common templating tools**
 
 [https://github.com/helm/helm]
 

@@ -1,24 +1,24 @@
-| **Cluster Architecture, Installation and Configuration   25%**         |   |
-|------------------------------------------------------------------------|---|
-| 1.  Manage role based access control (RBAC)                            |   |
-| 2.  Use Kubeadm to install a basic cluster                             |   |
-| 3.  Manage a highly-available Kubernetes cluster                       |   |
-| 4.  Provision underlying infrastructure to deploy a Kubernetes cluster |   |
-| 5.  Perform a version upgrade on a Kubernetes cluster using Kubeadm    |   |
-| 6.  Implement etcd backup and restore                                  |   |
+| **Cluster Architecture, Installation and Configuration   25%**         |
+|------------------------------------------------------------------------|
+| 1.  Manage role based access control (RBAC)                            |
+| 2.  Use Kubeadm to install a basic cluster                             |
+| 3.  Manage a highly-available Kubernetes cluster                       |
+| 4.  Provision underlying infrastructure to deploy a Kubernetes cluster |
+| 5.  Perform a version upgrade on a Kubernetes cluster using Kubeadm    |
+| 6.  Implement etcd backup and restore                                  |
 
-
-# 1. Manage role based access control (RBAC)
+# **1. Manage role based access control (RBAC)**
 
 - [https://kubernetes.io/docs/reference/access-authn-authz/rbac/]
 - [https://docs.bitnami.com/tutorials/configure-rbac-in-your-kubernetes-cluster/]
 
 - To perform any action in a cluster, you need to access the API.
 - Three steps are performed when accessing the API: authentication,
-  authorisation (ABAC, RBAC, Webhook, Global deny/allow settings), and Admission Control. 
+  authorisation (ABAC, RBAC, Webhook, Global deny/allow settings), and Admission
+  Control. 
 - RBAC falls under authorisation.  It uses the rbac.authorization.k8s.io API
-  group to manage authorisation decisions.  With the resources in this group, you can define
-  roles and associate users to these roles.
+  group to manage authorisation decisions.  With the resources in this group,
+  you can define roles and associate users to these roles.
 
 - Summary of RBAC process:
     - determine or create namespace
@@ -61,9 +61,7 @@ metadata:
         verbs: ["get", "watch", "list"]
 ```
 
-```
-kubectl create -f role-pod-reader.yaml
-```
+- Save the yaml and create `kubectl create -f role-pod-reader.yaml`.
 
 ```
 kind: RoleBinding
@@ -81,25 +79,19 @@ roleRef:
   apiGroup: ""
 ```
 
-```
-kubectl create -f rolebinding-pod-reader.yaml
-```
+- Save the yaml and create `kubectl create -f rolebinding-pod-reader.yaml`.
 
-## kubectl
+### using kubectl to create roles
+- create a role named "pod-reader" that allows a user to perform get, watch and
+  list on pods `kubectl create role pod-reader --verb=get --verb=list
+  --verb=watch --resource=pods`.
 
-```
-kubectl create role pod-reader --verb=get --verb=list --verb=watch
---resource=pods # creates a role named "pod-reader" that allows a user to
-perform get, watch and list on pods.
-```
-
-```
-kubectl create role foo --verb=get,list,watch --resource=replicasets.apps #
-create a role named "foo" with apiGroups specified.
-```
+- create a role named "foo" with apiGroups specified `kubectl create role foo
+  --verb=get,list,watch --resource=replicasets.apps`. 
 
 
-# 2. Use Kubeadm to install a basic cluster
+
+# **2. Use Kubeadm to install a basic cluster**
 
 - [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/]
 - [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/]
@@ -121,45 +113,30 @@ create a role named "foo" with apiGroups specified.
   as well as other items such as credentials, contexts, definitions, etc.
 - Note: A context is a combination of a cluster and user credentials.  You can
   switch contexts with kubectl.  This is useful when switching between clusters,
-  e.g. going from local to the cloud.
-```
-$ kubectl config use-context name-of-new-context
-```
+  e.g. going from local to the cloud, `kubectl config use-context
+  name-of-new-context`.
 
-## Cluster installation end goal: one control plane node and one worker node. Steps performed using two virtual machines running Ubuntu 18.04.
+### installation steps for a basic cluster 
+- Note: one control plane node and one worker node. 
+- Steps performed using two virtual machines running Ubuntu 18.04 on GKE.
+- installation broken into two sections. Section 1: for control plane. Section
+  2: for worker node.
 
-### Step 1 - install a control plane node
+#### Section 1 - install a control plane node
 
-1. Switch to root
-```
-sudo -i
-```
+1. Switch to root, `sudo -i`.
 
-2. Disable swap on all nodes (With swap enabled, it's problematic for disk io
-mangement, isolation management. See github issues for some of the discussion around this area
-[https://github.com/kubernetes/kubernetes/issues/53533]. 
-```
-sudo swapoff -a
-```
-Optional: update the file system table file to ensure it is off on all reboots.
-Requires reboot to take effect.
+1. Disable swap on all nodes, `swapoff -a`. With swap enabled, it's problematic for disk io
+mangement, isolation management, etc. See github issues for some of the discussion around this area
+e.g. [https://github.com/kubernetes/kubernetes/issues/53533]. 
+  1. Optional: update the file system table file to ensure it is off on all
+  reboots. Requires reboot to take effect, `sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab`
 
-```
-verify first
-sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
-```
+1. Start by updating and upgrading software packages, `sudo apt update && sudo apt upgrade -y`
 
-3. Start by updating and upgrading software packages
-```
-sudo apt update && sudo apt upgrade -y 
-```
+1. Next, install a container runtime engine, example - docker, `sudo apt install -y docker.io`
 
-4. Next, install a container runtime engine, example - docker.
-```
- sudo apt install -y docker.io
-```
-
-5. Configure Cgroup drivers.  Both the container runtime and the kubelet have a
+1. Configure Cgroup drivers.  Both the container runtime and the kubelet have a
 property called "cgroup driver", which is important with respect to the
 management of cgroups on Linux. Note: matching the container runtime and the
 kubelet cgroup drivers is required, otherwise the kubelet process will fail.
@@ -167,7 +144,7 @@ kubelet cgroup drivers is required, otherwise the kubelet process will fail.
 - [https://kubernetes.io/docs/setup/production-environment/container-runtimes/]
 - [https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/]
 
-```
+```bash
 cat << EOF | sudo tee /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
@@ -178,51 +155,41 @@ cat << EOF | sudo tee /etc/docker/daemon.json
   "storage-driver": "overlay2"
 }
 EOF
-
 ```
 
-6. Use systemd to restart docker and enable on boot
+1. Use systemd to restart docker and enable on boot
 ```
 sudo systemctl enable docker
 sudo systemctl daemon-reload
 sudo systemctl restart docker
 ```
 
-7. Add a new repo for Kubernetes. Create and edit as follows:
+1. Add a new repo for Kubernetes. Create and edit as follows:
 ```
 vim /etc/apt/sources.list.d/kubernetes.list
-deb    http://apt.kubernetes.io/   kubernetes-xenial   main   #<-- add this
-line to the file
+
+deb    http://apt.kubernetes.io/   kubernetes-xenial   main   #<-- add this line to the file
 ```
 
-8. Add a GPG key for the packages. 
+1. Add a GPG key for the packages. 
 ```
 curl -s \
 https://packages.cloud.google.com/apt/doc/apt-key.gpg \
 | apt-key add -
 ```
 
-9. Update the new repo
-```
-# apt-get update
-```
+1. Update the new repo, `apt-get update`.
 
-10. Install the necessary software (kubeadm kubelet kubectl).  
-- Note: tried installing all three
+1 Install the necessary software, `sudo apt-get install kubeadm`. 
+- Note: tried installing all three (kubeadm kubelet kubectl).
 - the Kubelet version may never exceed the API server version.  For example, the
   kubelet running v.1.20.0 should be fully compatible with a 1.21.0 API server,
   but not vica versa.
-```
-# apt-get install kubeadm 
-```
 
-11. Mark & hold the relevant packages so they are not upgraded:
-```
-# apt-mark hold kubeadm kubelet kubectl
-apt-mark showhold
-```
+1. Mark & hold the relevant packages so they are not upgraded: `apt-mark hold
+kubeadm kubelet kubectl`. Confirm: `apt-mark showhold`.
 
-12. Get cp IP address and add to /etc/hosts
+1 Get cp IP address and add to /etc/hosts
 ```
 hostname -i
 vim /etc/hosts

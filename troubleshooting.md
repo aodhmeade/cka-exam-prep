@@ -7,6 +7,9 @@
 | 5.  Troubleshoot cluster component failure |   |
 | 6.  Troubleshoot networking                |   |
 
+[https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/]
+
+
 - Seems to make more sense to group the sections as follows:
 
 - 1 and 5: covers Kubernetes Components 
@@ -25,7 +28,7 @@ standard linux tools (e.g. dig, tcpdump) can be very useful in troubleshooting y
 
 # **1.  Evaluate cluster and node logging**
 
-## Node level logging architecture:
+### Node level logging architecture:
 - a container engine handles & redirects any output generated to a containerised
   applications stdout and stderr streams.  For example, the Docker container
   engine redirects those two streams to a logging driver, which is configured in
@@ -56,7 +59,7 @@ standard linux tools (e.g. dig, tcpdump) can be very useful in troubleshooting y
     More log files for current pods
     - /var/log/pods
 
-## Cluster level logging architectures:
+### Cluster level logging architectures:
 - Kubernetes does not provide an out-of-the-box solution for cluser-level
   logging.
 - Common options include:
@@ -218,3 +221,54 @@ kubectl get service
 kubectl describe service <service-name>
 ```
 [https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/]
+
+
+
+
+
+
+
+
+# Don't know what section to include this under yet ...
+
+### useful
+- kubectl explain pods
+- kubectl explain nodes
+
+
+### cluster
+- accessing cluster info
+- kubectl config view
+
+- authenticate and access api server using a proxy 
+- kubectl proxy --port=8080 &
+- the locate api with curl, wget, etc.
+- curl http://localhost:8080/api/
+
+
+[https://kubernetes.io/docs/tasks/administer-cluster/namespaces-walkthrough/]
+
+- a context in Kubernetes is a connection to a specific cluster (is a group of
+  access parameters).  Each contains a cluster, a user and a namespace.  The
+  current context is the cluser that is the default for kubectl - all kubectl
+  commands run against that cluster.  Details are found in the .kubeconfig file.
+  The term only applies on the client side. 
+- kubectl config use-context my-cluster-name
+- kubectl config unset current-context
+- Note: mayhave to copy config file from /etc/kubernetes/admin.conf if things
+  get messed up.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
