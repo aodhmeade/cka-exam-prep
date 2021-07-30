@@ -68,6 +68,8 @@ standard linux tools (e.g. dig, tcpdump) can be very useful in troubleshooting y
     - push logs directly to a backend from within the application.
 
 # **2.  Understand how to monitor applications**
+
+
 ```
 kubectl exec --stdin --tty <pod-name> -- /bin/bash # if only one container
 running
@@ -77,43 +79,88 @@ has more than one container. Note: the short options -i and -t are the same as
 the long options --stdin and --tty.
 
 exit # enter 'exit' when you are finished with the shell
-
 ```
 
+### liveness probes, readiness probes and startup probes
+
+- [https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/]
+
+- kubelet will use 'liveness probes' to know when to restart a container.
+- kubelet will use 'readiness probes' to know when a container is ready to start
+  handling traffic.
+- kubelet will use 'startup probes' to know when a container application has
+  started (if this is used, liveness & readiness probes are disabled until it
+  succeeds).
+
+#### liveness probe
+
+- you can run a shell command, a TCP probe, or a http GET.
+- you must specify the type of probe and pass some parameters to it
+    - initialDelaySeconds: how long to wait before starting checks.
+    - periodSeconds: how often to run the check.
+
+   ```yaml
+   ...
+     livenessProbe:
+       exec:
+         command:
+         - cat
+         - /tmp/healthy
+       initialDelaySeconds: 10
+       periodSeconds: 5
+   ```
+
+#### readiness probe
+
+- similar to liveness probes.
+
+#### startup probes
+
+- adds a `failureThreshold` to the manifest.
+- this is multiplied with `periodSeconds` to work out the time allowed before a
+  startup failure should be reported.
+
+
 # **3.  Manage container stdout & stderr logs**
+- container standard out can be seen via the 'kubectl logs' command.
 
-
+- for example, `kubectl -n <a-namespace> logs <pod-name>
 
 
 # **4.  Troubleshoot application failure**
 
 - Inevitably, you will need to debug problems with your application.
 
-- First step is to check if a pod is running
-```
-kubectl get pods
-```
+- First step is to check if a pod is running: `kubectl get pods`
+
 - If the Pod is not ready, use 'describe' to get more specific information from
   a pod. This provides information about the Pod as well as a list of events
-  that describe the initialisation process which may show issues.
-```
-kubectl describe pod <pod-name>
-```
+  that describe the initialisation process which may show issues: `kubectl describe pod <pod-name>`
+
 - To get extra detail, pass the -o yaml output format flag to the kubectl get
-  pod command
-```
-kubectl get pod <pod-name> -o yaml
-```
+  pod command: `kubectl get pod <pod-name> -o yaml`
+
 - To obtain the stdout & stderr logs from the containers in the pod (the level
-  of detail will depend on how the application has been configured).
-```
-kubectl logs -f <pod-name> -c <containername> -n <namespace>
-```
+  of detail will depend on how the application has been configured): `kubectl
+  logs <pod-name>`. If more than one container in a Pod, `kubectl logs -f <pod-name> -c <containername> -n <namespace>`
+
 - If the container has crashed, you can try and check the logs using the
-  'previous' flag:
-```
-kubectl logs <pod-name> --previous -c <containername> -n <namespace>
-```
+  'previous' flag: `kubectl logs <pod-name> --previous -c <containername> -n <namespace>`
+
+### some example Pod states
+
+Pending: maybe insufficient resources, requesting more than what is available.
+    - Try: free up resources, add more nodes to the cluster
+
+Waiting: cannot start.
+    - Try: checking image name is correct, if image is available
+
+ImagePullBackOff: image problem.
+    - Try: checking image name is correct and is available.
+
+CrashLoopBackOff: error in the container that causes Pod to restart.
+    - Try: use 'describe' to try and ascertain problem, export spec and review
+
 
 
 # **5.  Troubleshoot cluster component failure**
@@ -132,79 +179,56 @@ Node Components
     kube-proxy
     container runtime (kubernetes supports several - docker, containerd, cri-o)
     CNI
-Addons
-
-DNS
-
-Web UI (Dashboard)
+Addons, DNS, Web UI (Dashboard)
 
 Container Resource Monitoring
-```
-# first thing to check is if all cluster nodes are registered correctly and in a ready state
-kubectl get nodes
 
-# to get more information on a node
-kubectl describe node <node-name>
+- first thing to check is if all cluster nodes are registered correctly and in a ready state
+`kubectl get nodes`
 
-# to get extra detail on a node, pass the output to yaml
-kubectl get node <node-name> -o yaml
+- to get more information on a node: `kubectl describe node <node-name>`
 
-# check for event errors with
-kubectl get events --namespace=<namespace-name>
-kubectl get events --all-namespaces
+- to get extra detail on a node, pass the output to yaml: `kubectl get node
+  <node-name> -o yaml`
 
-# to get information about the overall health of a cluster, you can run
-kubectl cluster-info dump
+- check for event errors with: `kubectl get events
+  --namespace=<namespace-name>` or `kubectl get events --all-namespaces'
 
-# 
-service kube-apiserver status
-service kube-controller-manager status
-service kube-scheduler status
+- to get information about the overall health of a cluster, you can run:
+  `kubectl cluster-info dump`
+
+- to get the status of a particular service, e.g.: `service kube-apiserver status`
 
 ```
 
-```
-** kube-apiserver **
-# for systemd based
-journalctl -u kube-apiserver
+### kube-apiserver
+`journalctl -u kube-apiserver`
 or
-cat /var/log/kube-apiserver.log
-```
+`cat /var/log/kube-apiserver.log`
 
 ```
-** kube-scheduler **
-# for systemd based
-journalctl -u kube-scheduler
+### kube-scheduler 
+`journalctl -u kube-scheduler`
 or
-cat /var/log/kube-scheduler.log
-```
+`cat /var/log/kube-scheduler.log`
 
 ```
-** kube-controller-manager **
-# for systemd based
-journalctl -u kube-controller-manager
+### kube-controller-manager
+`journalctl -u kube-controller-manager`
 or
-cat /var/log/kube-controller-manger.log
+`cat /var/log/kube-controller-manger.log`
+
+- The next step would be to look deeper into the relevant machines hosting the
+  services.
+
+
+### Node Components
 ```
-
-
-
-The next step would be to look deeper into the relevant machines hosting the
-services.
-
-
-Node Components
-
-kubelet
-
 sudo journalctl -u kubelet
 sudo systemctl status kubelet
 sudo systemctl enable kubelet
 sudo systemctl start kubelet
-
-
-
-
+```
 
 
 
@@ -213,16 +237,16 @@ sudo systemctl start kubelet
 
 # **6.  Troubleshoot networking**
 
-```
-# first step is to check the service status
-kubectl get service
+- [https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/]
 
-# for more information, describe the service
-kubectl describe service <service-name>
-```
-[https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/]
+- first step is to check the service status, `kubectl get service`
 
+- for more information, describe the service, `kubectl describe service
+  <service-name>`
 
+- check if 'kube-proxy' is running, `sudo systemctl status kube-proxy`.
+
+- check journald logs, `sudo journalctl logs kube-proxy`
 
 
 
@@ -259,12 +283,13 @@ kubectl describe service <service-name>
   get messed up.
 
 
+- to get container count on a node, run: `sudo docker ps | wc -l`
 
 
 
-
-
-
+- assuming metrics server is installed, you can find cpu and mem metrics by
+  running `kubectl top pod --all-namespaces`
+- to get the top nodes, run `kubectl top nodes`
 
 
 

@@ -113,11 +113,7 @@ Rollback
 - To undo the current rollout and rollback to the previous revision run,
   'kubectl rollout undo deployment.v1.apps/nginx-deployment'
 - To rollback to a specific revision:
-<details>
-<summary>
-example
-</summary>
-<p>
+
 ```
 kubectl rollout undo deploy/nginx-deployment --to-revision=1
 ```
@@ -521,13 +517,51 @@ spec:
 kubectl apply -f pod-quota-demo.yaml --namespace=<namespace-name>
 ```
 
+### using labels to schedule Pods
+- [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity]
+
+- While Kubernetes will distribute workloads to your Pods, you may want to
+  determine this yourself if you have a specific production requirement (e.g.
+  specific hardware to meet certain workload requirements).  Can use 'labels' to
+  schedule Pods to a node.
+
+- to view current labels associated with nodes: `kubectl describe nodes | grep -A 5
+  -i label`
+
+- to label nodes: `kubectl label nodes <node-name> <key>=<value>`
+
+- to view labels: `kubectl get nodes --show-labels`
+
+- add a 'nodeSelector' entry to a Pod manifest:
+```yaml
+  nodeSelector:
+    <key>: <value>
+```
+  
+- create your Pod with your manifest, `kubectl create -f <manifest-name.yaml>`
+
+### using taints to schedule Pods
+
+- [https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/]
+
+- to view the taints associated with nodes: `kubectl describe node | grep -i
+  taint` or `kubectl get nodes -o json | jq '.items[].spec.taints`
+
+- to add a taint to a node: `kubectl taint nodes <node-name>
+  <key-name>=<value-name>:<taint-effect>`. There seems to be 3 taint effect
+  options availabe - NoSchedule, PreferNoSchedule, NoExecute.
+
+- to remove a taint: `kubectl taint nodes <node-name>
+  <key-name>=<value-name>:<taint-effect>-`. E.g. `kubectl taint nodes node1
+  key1=value1:NoSchedule-`. Note: the 'hyphen' at the end.
 
 
 # **6.  Awareness of manifest management and common templating tools**
 
-[https://github.com/helm/helm]
+- [https://helm.sh/]
+- [https://github.com/helm/helm]
 
-## Helm
+### Helm
 - Helm is a tool for managing packages of pre-configured Kubernetes resources,
   aka Kubernetes charts. It is similar to a package manager like apt, yum, etc.
   Charts are similar to packages.
@@ -553,68 +587,61 @@ chart.yaml
 ```
 
 - To install:
-```
-curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v2.8.2-linux-amd64.tar.gz
 
-tar -xvf helm-v2.8.2-linux-amd64.tar.gz
+`curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v2.8.2-linux-amd64.tar.gz`
 
-mv linux-amd64/helm /usr/local/bin/
-```
+`tar -xvf helm-v2.8.2-linux-amd64.tar.gz`
+
+`mv linux-amd64/helm /usr/local/bin/`
+
 - Once installed, initialise and sync latest charts. A default repo is included
   once you have installed. Repos are http servers that contain an index file and a
   tarball of all the charts present.  
-```
-helm init --stable-repo-url https://charts.helm.sh/stable
 
-helm repo update
-```
+`helm init --stable-repo-url https://charts.helm.sh/stable`
+
+`helm repo update`
+
 - To check your repo list,
-```
-'helm repo list'
-```
+`helm repo list`
+
 - To search your repos based on keywords:
-```
-'$ helm search nginx'
-```
+`helm search nginx`
+
 - To see more information:
-```
-'helm show chart <chart-name>'
-```
+`helm show chart <chart-name>`
 
 - To add a repo:
-```
-'$ helm repo add testing http://storage.googleapis.com/kubernetes-charts-testing'
-```
+`helm repo add testing http://storage.googleapis.com/kubernetes-charts-testing'`
+
 - To install a chart:
-```
-'$ helm install testing/nginx'
-$ helm install --name my-demo testing/nginx
-```
+`helm install testing/nginx` or `helm install --name my-demo testing/nginx`
+
 - To view helm package:
-```
-helm ls
-```
+`helm ls`
+
 - To uninstall a chart:
-```
-'$helm uninstall <chart-name>'
-```
-- To rollback:
-```
-'$ helm rollback'
-```
+`helm uninstall <chart-name>`
+
+- To uninstall a chart and keep release history, add the '--keep-history' flag.
+`helm uninstall <chart-name> --keep-history`
+
+- Helm tracks your releases so you can audit a cluster's history or undelet a
+  release, i.e. rollback:
+`helm rollback`
+
 - To find more information about Helm commands:
-```
-'$ helm help'
-'$ helm <command> -h'
-```
+`helm help` or `helm <command> -h`
+
 - Helm deploys all the replica sets, pods, services, etc. Examine with:
-```
-kubectl get all
-```
+`kubectl get all`
 
 
+### kustomize
 
+[https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/]
 
-
+- Kustomize is a tool to customise Kubernetes objects through a 'kustimization
+  file'.
 
 
