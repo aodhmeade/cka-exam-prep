@@ -199,20 +199,17 @@ Container Resource Monitoring
 
 - to get the status of a particular service, e.g.: `service kube-apiserver status`
 
-```
 
 ### kube-apiserver
 `journalctl -u kube-apiserver`
 or
 `cat /var/log/kube-apiserver.log`
 
-```
 ### kube-scheduler 
 `journalctl -u kube-scheduler`
 or
 `cat /var/log/kube-scheduler.log`
 
-```
 ### kube-controller-manager
 `journalctl -u kube-controller-manager`
 or
@@ -235,7 +232,7 @@ sudo systemctl start kubelet
 
 
 
-# **6.  Troubleshoot networking**
+# **6. Troubleshoot networking**
 
 - [https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/]
 
