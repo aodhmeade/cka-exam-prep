@@ -1,13 +1,5 @@
 # cka-exam-prep
-- Notes & other relevant material for the Certified Kubernetes Administrator (CKA) exam.  
-
-# Kubernetes
-- [https://kubernetes.io/]
-
-## Exam details
-- Official guidance: exam details, registration, etc., can be found at [CNCF](https://www.cncf.io/certification/cka/) and at the [Linux  Foundation](https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/), as this is a joint effort between both.   
-    - Read: candidate handbook, exam tips, curriculum overview, faqs. 
-    - View: a demo of the exam environment.
+Some notes & other relevant material to help me prepare for the Certified Kubernetes Administrator (CKA) exam.  
 
 ## Exam domains & weights 
 | Exam Domain                                       | Weight |
@@ -18,22 +10,29 @@
 | [Storage](storage.md)                                            |   10%  |
 | [Troubleshooting](troubleshooting.md)                                    |   30%  |
 
-## Some points worth noting:
-- The exam is proctored remotely.
-- It consists of 15-20 lab/performance-based problems.
-- Problems to be solved in a command line running Linux.
-- The exam is currently provisioned on Ubuntu 18.04
-- The questions are weighted differently.
-- You have 2 hrs to complete the CKA.
-- The exam is currently based on Kubernetes v1.21 
-- There are six clusters that comprise the CKA exam environment. Each with one
-  main node, a varying number of worker nodes, and different CNI's.
-- You are allowed to open one additional browser tab to access documentation
-  from:
+# Kubernetes documentation
+- [https://kubernetes.io/]
+
+## Exam preparation
+- Official guidance: exam details, registration, etc., can be found at
+  [CNCF](https://www.cncf.io/certification/cka/) and at the [Linux
+  Foundation](https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/),
+  as this is a joint effort between both. **Read:** candidate handbook, exam
+  tips, curriculum overview, faqs. **Watch:** a demo of the exam environment.
+
+## Note
+The exam is proctored remotely. It consists of 15-20 performance-based problems
+to be solved at the command line. The exam is currently provisioned on Ubuntu
+18.04. Likely standard shells available: sh, bash. The questions are weighted
+differently.  You have 2 hrs to complete the CKA. The exam is currently based on
+Kubernetes v1.21. There are six clusters that comprise the CKA exam environment.
+Each with one main node, a varying number of worker nodes, and different CNI's.
+The 'context' you need to operate in will be specified at the start of each
+question. You are allowed to open one additional browser tab to access
+documentation from:
   - https://kubernetes.io/docs
   - https://github.com/kubernetes/
   - https://kubernetes.io/blog
-- There is a free retake (if you fail at first attempt).
 
 ## Practice environments
 - Katacoda - browser-based interactive playground
@@ -41,13 +40,13 @@
 - From scratch using VMs on either GCP, AWS, Azure, etc.
 - killer.sh (check this out ...)
 - https://kubewiz.com/exams  ... check this out
-## Tools
-Some necessary, some seem optional like tmux
-- linux/bash (systemd ... running services)
-- text editor (nano, vim)
+
+## Be familiar with:
+- (systemd ... running services)
+- a text editor (nano, vim)
 - YAML/JSON
 - Docker
-- tmux
+- tmux (optional)
 
 ## Tips 
 - Bookmarks

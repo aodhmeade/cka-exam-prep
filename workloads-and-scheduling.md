@@ -374,6 +374,15 @@ kubectl scale deployment nginx-deployment --replicas=10
 - Deployments, ReplicaSets, StatefulSets, DaemonSets, Jobs, CronJobs.
 
 
+### daemonsets
+
+- create DaemonSet by using example on kubernetes.io or by create a deployment
+  and amending the yaml.
+
+
+
+
+
 
 
 
@@ -515,6 +524,15 @@ spec:
 - create the ResourceQuota as follows:
 ```
 kubectl apply -f pod-quota-demo.yaml --namespace=<namespace-name>
+```
+
+### using nodeName
+
+- you can specify a node name in a Pod manifest to use a specific node
+```yaml
+...
+spec
+  nodeName: <node-name>
 ```
 
 ### using labels to schedule Pods

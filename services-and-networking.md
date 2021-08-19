@@ -435,6 +435,8 @@ kubectl -n kube-system get configmap coredns -o yaml
 
 - Apply with 'kubectl apply -f <name.yaml>'
 
+- kubelet looks at /etc/cni/net.d to find CNI plugins by default.
+
 ```
 $ systemctl status kubelet.service
 $ ps -aux | grep kubelet

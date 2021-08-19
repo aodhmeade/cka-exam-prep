@@ -290,7 +290,7 @@ sudo systemctl start kubelet
 
 
 
-
+- kubectl get -n <namespace> pod <pod-name> -o jsonpath='{.metadata.uid}'
 
 
 

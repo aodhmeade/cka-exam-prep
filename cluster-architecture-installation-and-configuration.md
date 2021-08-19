@@ -85,7 +85,8 @@ roleRef:
 - create a role named "foo" with apiGroups specified `kubectl create role foo
   --verb=get,list,watch --resource=replicasets.apps`. 
 
-
+### to test RBAC setup
+- you can use `kubectl auth can-i`.  Run `kubectl auth can-i -h` to see some examples.  
 
 # **2. Use Kubeadm to install a basic cluster**
 
@@ -333,6 +334,8 @@ openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin
 
 
 # **5.  Perform a version upgrade on a Kubernetes cluster using kubeadm**
+- [https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/]
+
 - if you build your cluster with kubeadm, you also have the option to upgrade
   the cluster using the kubeadm upgrade command.
 - skipping minor versions when upgrading is unsupported.
@@ -347,17 +350,17 @@ openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin
   version using OS package manager ('apt' as the exam is based on Ubuntu):
 - useful to mark the versions of kubeadm, kubectl and kubelet before you begin.
 
-- Firstly, update the package data for apt.
-`sudo apt update`
 
-- Check your current versions:
-`sudo kubeadm version`
+- `kubectl get node`, will give you the version your nodes are running on.
+
+- Update the package data for apt, `sudo apt update`
+
+- Check your current versions,`sudo kubeadm version`
 
 - Find the latest kubernetes package available. It should look like 1.21.x-00, where x is the latest patch.
 `sudo apt-cache kubeadm`
 
-- Remove the hold placed on kubeadm:
-`sudo apt-mark unhold kubeadm`
+- Remove the hold placed on kubeadm,`sudo apt-mark unhold kubeadm`
 
 - Update the package. Replace the x in the 1.21.x-00 with latest patch version
 `sudo apt-get install -y kubeadm=1.21.x-00`
@@ -382,9 +385,11 @@ openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin
 
 - Note: kubeadm upgrade also automatically renews the certificates that it
   manages on the node.
+
 - Note: if the kubeadm upgrade plan output shows any component configs that
   require manual upgrade, you must provide a config file with replacement
   configs to kubeam upgrade apply via the --config cli flag.
+
 - Next, choose a version to upgrade to:
 `sudo kubeadm upgrade apply v1.21.x`
 
@@ -475,10 +480,7 @@ etcdctl version  #<-- to get version
 
 - These files can be viewed on an etcd Pod at:
 
-```
-cd /etc/kubernetes/pki/etcd
-echo *
-```
+`cd /etc/kubernetes/pki/etcd && echo *`
 
 - Check the health of etcd
 
