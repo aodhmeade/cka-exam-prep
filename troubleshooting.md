@@ -9,7 +9,6 @@
 
 [https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/]
 
-
 - Seems to make more sense to group the sections as follows:
 
 - 1 and 5: covers Kubernetes Components 
@@ -292,5 +291,7 @@ sudo systemctl start kubelet
 
 - kubectl get -n <namespace> pod <pod-name> -o jsonpath='{.metadata.uid}'
 
+- kubectl get componentstatus
 
-
+- kubectl delete rs <name> --cascade=orphan # delete rs but not the pods it
+  controls

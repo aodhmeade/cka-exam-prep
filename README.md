@@ -1,7 +1,7 @@
 # cka-exam-prep
-Some notes & other relevant material to help me prepare for the Certified Kubernetes Administrator (CKA) exam.  
+Some notes & other relevant material to help prepare for the Certified Kubernetes Administrator (CKA) exam.  
 
-## Exam domains & weights 
+## exam domains & weights 
 | Exam Domain                                       | Weight |
 |--------------------------------------------------------|:------:|
 | [Cluster Architecture, Installation & Configuration](cluster-architecture-installation-and-configuration.md) |   25%  |
@@ -11,10 +11,10 @@ Some notes & other relevant material to help me prepare for the Certified Kubern
 | [Troubleshooting](troubleshooting.md)                                    |   30%  |
 
 # Kubernetes documentation
-- [https://kubernetes.io/]
+[https://kubernetes.io/]
 
-## Exam preparation
-- Official guidance: exam details, registration, etc., can be found at
+## exam preparation
+Official guidance: exam details, registration, etc., can be found at
   [CNCF](https://www.cncf.io/certification/cka/) and at the [Linux
   Foundation](https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/),
   as this is a joint effort between both. **Read:** candidate handbook, exam
@@ -49,10 +49,35 @@ documentation from:
 - tmux (optional)
 
 ## Tips 
-- Bookmarks
-- Aliases
 
-## Day of exam
+### Bookmarks
 
-## Books, repos, blogs I've found useful ...
+### VIM
+- create a vim configuration file, `vim ~/.vimrc`
+- 
+```
+inoremap jj <ESC>
+:set relative number
+:set number
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 et
+```
+### BASH
+- To add autocomplete permanently to your bash shell, `echo "source <(kubectl completion bash)" >> ~/.bashrc`
+- To add a shorthand alias for 'kubectl' permanently to your bash shell, that
+  also works with autocomplete:
+`echo "alias k=kubectl" >> ~/.bashrc`
+`echo "complete -F __start_kubectl k" >> ~/.bashrc"`
+- Another useful alias,`echo "alias kcc='kubectl config current-context'" >> ~/.bashrc`
+### BASH env variables
+`export dry='--dry-run=client -o yaml'`
+`export fd='--force --grace-period=0`
+### TMUX (tmux is not required, but useful to have the option). 
+- Create a tmux configuration file, e.g. `vim ~/.tmux.conf`
+- I found the following useful:
+`set -g base-index 1 # changes the default window numbering to start from 1
+rather than 0`
+`set-environment -g PATH $PATH # persists the bash env variables set above in
+tmux session`
+
+## Repos:
 

@@ -374,6 +374,17 @@ kubectl scale deployment nginx-deployment --replicas=10
 - Deployments, ReplicaSets, StatefulSets, DaemonSets, Jobs, CronJobs.
 
 
+
+### replicasets
+
+To delete a rs but not its pods,  `kubectl delete rs <name> --cascade=orphan`
+To isolate a pod from a replicaset, edit the label of the pod:
+```yaml
+...
+  labels:
+    system: isolatedPod #<-- change from label created by replicaset
+```
+
 ### daemonsets
 
 - create DaemonSet by using example on kubernetes.io or by create a deployment

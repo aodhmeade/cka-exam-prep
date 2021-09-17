@@ -20,31 +20,32 @@
   group to manage authorisation decisions.  With the resources in this group,
   you can define roles and associate users to these roles.
 
-- Summary of RBAC process:
-    - determine or create namespace
-    - create certificate credentials for user
-    - set the credentials for the user to the namespace using a context
-    - create a role for the expected task set
-    - bind the user to the role
-    - verify the user has limited access
+Summary of RBAC process:
+- determine or create namespace
+- create certificate credentials for user
+- set the credentials for the user to the namespace using a context
+- create a role for the expected task set
+- bind the user to the role
+- verify the user has limited access
 
-- There are four resources in this API group: Role, ClusterRole, RoleBinding, and ClusterRoleBinding
-
+There are four resources in this API group: Role, ClusterRole, RoleBinding, and
+ClusterRoleBinding.
 - To manage RBAC, you need:
-    - Rules: this is an operation (verb) that can be carried out on a resource.
-    - Role & ClusterRole: represent a set of permissions (rules).  They are additive
-      (i.e. there are no "deny" rules).  A role sets permissions within a particular
-      namespace.  ClusterRole by contrast is non-namespaced.
-    - Subjects: Is the entity that attempts an operation, of which there are 3:
-        - user accounts: (human or otherwise) - external to the cluster.  These are
-          not API objects.
-        - service accounts:
-        - groups:
-    - RoleBindings and ClusterRoleBindings: these bind subjects to roles.
-      Difference here is similiar to Role versus ClusterRole.  RoleBindings
-      applies to a namespace, whereas ClusterRoleBinding applies to all
-      namespaces.
+  - Rules: this is an operation (verb) that can be carried out on a resource.
+  - Role & ClusterRole: represent a set of permissions (rules).  They are additive
+    (i.e. there are no "deny" rules).  A role sets permissions within a particular
+    namespace.  ClusterRole by contrast is non-namespaced.
+  - Subjects: Is the entity that attempts an operation, of which there are 3:
+      - user accounts: (human or otherwise) - external to the cluster.  These are
+        not API objects.
+      - service accounts:
+      - groups:
+  - RoleBindings and ClusterRoleBindings: these bind subjects to roles.
+    Difference here is similiar to Role versus ClusterRole.  RoleBindings
+    applies to a namespace, whereas ClusterRoleBinding applies to all
+    namespaces.
 
+Example yaml manifest for a 'Role':
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -56,9 +57,10 @@ metadata:
       resources: ["pods"]
         verbs: ["get", "watch", "list"]
 ```
+- To create the above manifest, save the yaml and create as follows:
+`kubectl create -f role-pod-reader-example.yaml`.
 
-- Save the yaml and create `kubectl create -f role-pod-reader.yaml`.
-
+Example yaml manifest for a 'RoleBinding':
 ```
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -75,9 +77,10 @@ roleRef:
   apiGroup: ""
 ```
 
-- Save the yaml and create `kubectl create -f rolebinding-pod-reader.yaml`.
+- To create the above manifest, save the yaml and create as follows:
+`kubectl create -f rolebinding-pod-reader-example.yaml`.
 
-### using kubectl to create roles
+### Roles can be created imperatively by using kubectl
 - create a role named "pod-reader" that allows a user to perform get, watch and
   list on pods `kubectl create role pod-reader --verb=get --verb=list
   --verb=watch --resource=pods`.
@@ -85,8 +88,7 @@ roleRef:
 - create a role named "foo" with apiGroups specified `kubectl create role foo
   --verb=get,list,watch --resource=replicasets.apps`. 
 
-### to test RBAC setup
-- you can use `kubectl auth can-i`.  Run `kubectl auth can-i -h` to see some examples.  
+- To test the RBAC setup you can use `kubectl auth can-i`.  Run `kubectl auth can-i -h` to see some examples.  
 
 # **2. Use Kubeadm to install a basic cluster**
 
@@ -97,9 +99,9 @@ roleRef:
 - kubeadm is a cli tool that you can use to set up a K8s cluster from scratch.
 - kubeadm is not the only tool. There are other vendor specific tools. 
 - Bootstrapping a Kubernetes cluster with kubeadm essentially involves 3 steps: 
-    - run 'kubeadm init' (to initialise the cp/head node)
-    - apply a network plugin (a CNI plugin),
-    - run 'kubeadm join' (on a worker node).
+  - run 'kubeadm init' (to initialise the cp/head node)
+  - apply a network plugin (a CNI plugin),
+  - run 'kubeadm join' (on a worker node).
 - There are other commands such as kubeadm upgrade, kubeadm config, kubeadm
   token, kubeadm reset.
 - Before you begin, check to ensure you have a container runtime installed on
@@ -113,19 +115,17 @@ roleRef:
   e.g. going from local to the cloud, `kubectl config use-context
   name-of-new-context`.
 
-### installation steps for a basic cluster 
-- Aim: one control plane node and one worker node. 
-- Env: performed using two virtual machines running Ubuntu 18.04 on GCE.
-- Steps: performed as follows: Section 1: for control plane. Section 2: for worker node.
+### Installation steps for a basic cluster (one control plane node and one
+worker node). Steps performed using two virtual machines running Ubuntu 18.04 on GCE.
 
 #### Section 1 - install a control plane node
-
 1. Switch to root, `sudo -i`.
 
 1. Disable swap on all nodes, `swapoff -a`. With swap enabled, it's problematic for disk io
 mangement, isolation management, etc. See github issues for some of the discussion around this area
 e.g. [https://github.com/kubernetes/kubernetes/issues/53533]. 
-  1. Optional: update the file system table file to ensure it is off on all
+
+1. Optional: update the file system table file to ensure it is off on all
   reboots. Requires reboot to take effect, 
   `sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab`
 
@@ -201,7 +201,6 @@ mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config # copy the default
 config to your home directory 
 ```
-
 #### Section 2 - grow the cluser - add worker node(s)
 1. follow all the steps above except initialising, i.e. don't run `kubeadm
 init`.
@@ -399,6 +398,11 @@ openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin
 
 [upgrade/kubelet] Now that your control plane is upgraded, please proceed with
 upgrading your kubelets if you haven't already done so.
+
+
+`kubectl version --short` 
+
+
 ```
 - Check the status of the nodes:
 `kubectl get nodes`
@@ -517,10 +521,7 @@ ETCDCTL_API=3 etcdctl snapshot save <backup-file> \
 
 - Verify the snapshot taken
 ```
-student@control-plane:~$ kubectl -n kube-system exec -it etcd-control-plane --
-sh \
--c "ETCDCTL_API=3 etcdctl --write-out=table snapshot status
-/var/lib/etcd/snapshot.db"
+kubectl -n kube-system exec -it etcd-control-plane --sh -c "ETCDCTL_API=3 etcdctl --write-out=table snapshot status /var/lib/etcd/snapshot.db"
 ```
 - you should see output similar to:
 
