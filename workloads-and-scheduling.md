@@ -617,17 +617,17 @@ chart.yaml
 
 - To install:
 
-`curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v2.8.2-linux-amd64.tar.gz`
+Use 'wget' to download the compressed helm tar file: `wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz`
 
-`tar -xvf helm-v2.8.2-linux-amd64.tar.gz`
+Uncompress: `tar -xvf helm-v2.8.2-linux-amd64.tar.gz`
 
-`mv linux-amd64/helm /usr/local/bin/`
+Copy the binary to your path: `mv linux-amd64/helm /usr/local/bin/`
 
 - Once installed, initialise and sync latest charts. A default repo is included
   once you have installed. Repos are http servers that contain an index file and a
   tarball of all the charts present.  
 
-`helm init --stable-repo-url https://charts.helm.sh/stable`
+`helm repo add stable https://charts.helm.sh/stable`
 
 `helm repo update`
 
@@ -635,7 +635,7 @@ chart.yaml
 `helm repo list`
 
 - To search your repos based on keywords:
-`helm search nginx`
+`helm search repo nginx`
 
 - To see more information:
 `helm show chart <chart-name>`
@@ -644,7 +644,7 @@ chart.yaml
 `helm repo add testing http://storage.googleapis.com/kubernetes-charts-testing'`
 
 - To install a chart:
-`helm install testing/nginx` or `helm install --name my-demo testing/nginx`
+`helm install testing/nginx --generate-name`
 
 - To view helm package:
 `helm ls`

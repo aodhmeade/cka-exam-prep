@@ -141,8 +141,7 @@ kubelet cgroup drivers is required, otherwise the kubelet process will fail.
     1. [https://kubernetes.io/docs/setup/production-environment/container-runtimes/]
     1. [https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/]
 
-```bash
-cat << EOF | sudo tee /etc/docker/daemon.json
+`cat << EOF | sudo tee /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
   "log-driver": "json-file",
@@ -151,34 +150,25 @@ cat << EOF | sudo tee /etc/docker/daemon.json
   },
   "storage-driver": "overlay2"
 }
-EOF
-```
+EOF`
 
 1. Use systemd to restart docker and enable on boot
-```
-sudo systemctl enable docker
-sudo systemctl daemon-reload
-sudo systemctl restart docker
-```
+`sudo systemctl enable docker`
+`sudo systemctl daemon-reload`
+`sudo systemctl restart docker`
+
 
 1. Add a new repo for Kubernetes. Create and edit as follows: 
 `vim /etc/apt/sources.list.d/kubernetes.list`
 
-```
-deb    http://apt.kubernetes.io/   kubernetes-xenial   main   #<-- add this line to the file
-```
+`deb    http://apt.kubernetes.io/   kubernetes-xenial   main   #<-- add this line to the file`
 
 1. Add a GPG key for the packages. 
-```
-curl -s \
-https://packages.cloud.google.com/apt/doc/apt-key.gpg \
-| apt-key add -
-```
+`curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -`
 
 1. Update the new repo, `apt-get update`.
 
 1. Install the necessary software, `sudo apt-get install kubeadm`. 
-    1. Note: tried installing all three (kubeadm kubelet kubectl).
     1. the Kubelet version may never exceed the API server version.  For
     example, the kubelet running v.1.20.0 should be fully compatible with a
     1.21.0 API server, but not vica versa.
@@ -186,21 +176,26 @@ https://packages.cloud.google.com/apt/doc/apt-key.gpg \
 1. Mark & hold the relevant packages so they are not upgraded: `apt-mark hold
 kubeadm kubelet kubectl`. Confirm: `apt-mark showhold`.
 
+1. Decide which pod network to use for Container Networking Interface (CNI).
+For this example, using Calico. Just wget for now.
+`wget https://docs.projectcalico.org/manifests/calico.yaml`
+
 1. Get the control plane node IP address and add to /etc/hosts
-```
-hostname -i
+`hostname -i`
+`vim /etc/hosts`
+`10.128.0.3 k8scp #<-- add this line (change ip to match output from hostname -i)`
 
-vim /etc/hosts
-
-10.128.0.3 k8scp #<-- add this line (change ip to match output from hostname -i)
-```
+1. Initialise the control plane.
+`kubeadmin init --config=kubeadm-config.yaml --upload-certs | tee kubeadmin-init.out`
 
 1. To start using your cluster, you need to make the following config changes:
-```
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config # copy the default
-config to your home directory 
-```
+`mkdir -p $HOME/.kube`
+`sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config # copy the default config to your home directory`
+
+
+1. Apply the CNI plugin
+`kubectl apply -f calico.yaml #<-- using the file obtained via wget above`
+
 #### Section 2 - grow the cluser - add worker node(s)
 1. follow all the steps above except initialising, i.e. don't run `kubeadm
 init`.
@@ -212,49 +207,15 @@ by default. If it has been longer, and no token is present you can generate a
 new one with the sudo kubeadm token create command, seen in the following
 command. On the cp node:
 
-```
-kubeadm token list
-kubeadm token create --print-join-command
-```
+`kubeadm token list`
+`kubeadm token create --print-join-command`
 
 1. Use the above output on the worker node:
 
-```
-kubeadm join k8scp:6443 --token qsqg38.g9pohmf6pjdw0hkw \
---discovery-token-ca-cert-hash \
-sha256:W43JLJ2L4HTOFUU4TL4RY9340WGSLKGF9732097448R028280220J
-```
+`kubeadm join k8scp:6443 --token qsqg38.g9pohmf6pjdw0hkw --discovery-token-ca-cert-hash sha256:W43JLJ2L4HTOFUU4TL4RY9340WGSLKGF9732097448R028280220J`
 
 1. To verify if node has joined, run this on the cp: `kubectl get nodes`.
 
-1. To start using your cluster, you need to make the following config changes:
-```
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config # copy the default
-config to your home directory 
-```
-
-
-
-```
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
-
-Set up Pod Networking
-
-You will need to set up a Container Network Interface (CNI). 
-
-Know one for the exam.
-
-Weave seems to be recommended.
-
-kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl
-version | base64 | tr -d '\n')"
-
-kubectl get po -n kube-system # inspect pods to see if weavenet pods running
-
-
-... come back to thi ... 
-```
 
 # **3. Manage a highly-available Kubernetes cluster**
 
@@ -540,3 +501,7 @@ etcd process of the major.minor version:
 
 
 
+
+Weave seems to be recommended.
+kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl
+version | base64 | tr -d '\n')"

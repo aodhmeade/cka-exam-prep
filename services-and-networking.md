@@ -78,24 +78,43 @@ each other's ports on 'localhost'.
 
 # **2.  Understand connectivity between Pods**
 
-[https://kubernetes.io/docs/concepts/cluster-administration/networking/]
+- [https://kubernetes.io/docs/concepts/cluster-administration/networking/]
+- [https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/]
 
+#### declare a network policy
+- All pods can by default reach each other.  
+- To restrict traffic between pods use a 'Network Policy'.
 
+- To see how network policies work, create and expose an nginx deployment:
+  `kubectl create deployment nginx --image=nginx --port=80 --expose`
+- Test this nginx service by accessing it from a temporary pod: `kubectl run
+  test --image=busybox --rm -it -- sh`
+- In the 'test' shell run: `wget --spider --timeout=1 nginx`. You should get a
+  connection and confirmation that the remote file exists.
+- To limit the access to the 'nginx service' so that only pods with the label
+  `access: true` can send queries to it, you can use a `NetworkPolicy` object.
 
+```yaml
+piVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: access-nginx
+spec:
+  podSelector:
+    matchLabels:
+      app: nginx
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          access: "true"
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+- Using kubectl to create the above manifest: `kubectl apply -f https://k8s.io/examples/service/networking/nginx-policy.yaml`
+- If you try run a similar test pod (above) and run 'wget' again, it should
+  timeout as it does not have the correct label.
+- Create a pod with the correct label to see that the request is allowed:
+`kubectl run test --image=busybox --rm -it --labels="access=true" -- sh`
 
 
 # **3.  Understand ClusterIP, NodePort, LoadBalancer service types and endpoints**
@@ -248,7 +267,6 @@ Notes:
 
 
 # **4.  Know how to use Ingress controllers and Ingress resources**      
-
 - [https://kubernetes.io/docs/concepts/services-networking/ingress/] 
 - [https://www.ibm.com/cloud/blog/kubernetes-ingress]
 
@@ -296,10 +314,23 @@ Notes:
   it finds, such as URL path or domain name, it directs a client to the correct
   Pod.
 
-- For exam: know how to set up an Ingress Resource and Ingress Controller.
+#### To deploy an Ingress Controller, you can create one with helm:
+
+- You can use Helm to install an ingress controller: `helm search hub ingress`
+- Pick an ingress controller (e.g. nginx): `helm repo add ingress-nginx
+  https://kubernetes.github.io/ingress-nginx`
+- Update the repo: `helm repo update`
+- Update the 'values.yaml' file and change 'kind' to DaemonSet (from Deployment)
+  to have a pod on every node handle traffic:  
+  - `helm fetch ingress-nginx/ingress-nginx --untar`
+  - `cd ingress-nginx`
+  - `vim values.yaml`
+- Install the controller using the chart: `helm install myingress .`  
+
+#### Test the host by using curl
 
 - Sample Ingress Resource manifest:
-```
+```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -320,24 +351,17 @@ spec:
           servicePort: 80
 ```
 
-- You can manage ingress resources like you do Pods, Services, etc.:
-```
-$ kubectl get ingress
-$ kubectl describe ingress <ingress-name>
-$ kubectl edit ingress <ingress-name>
-$ kubectl delete ingress <ingress-name>
-```
-- To deploy an Ingress Controller, you can create one with 'kubectl'.
+- You can manage ingress resources like you do Pods, Services, etc,:
+`kubectl get ingress`
+`kubectl describe ingress <ingress-name>`
+`kubectl edit ingress <ingress-name>`
+`kubectl delete ingress <ingress-name>`
 
-- You can use Helm to install an ingress controller:
-```
-helm search hub ingress
-```
-
-- Test the host by using curl
 
 # **5.  Know how to configure and use CoreDNS**
 - [https://coredns.io/]
+- [https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/]
+- [https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/]
 
 - Kubernetes creates DNS records for Services and Pods. You can contact services
   with consistent DNS names instead of IP addresses.
@@ -349,22 +373,6 @@ helm search hub ingress
   v1.12).
 - Troubleshooting: use tools such as dig, nslookup.  Check /etc/resolv.conf of
   the container.
-
-```
-kubectl get pods -n kube-system
-
-kubectl exec -it <pod-name> -- /bin/bash
-
-apt-get update; apt-get install curl dnsutils -y
-
-dig
-
-cat /etc/resolv.conf
-
-kubectl -n kube-system get svc kube-dns -o yaml
-
-```
-
 - CoreDNS is modular and pluggable - each plugin adds new functionality to
   CoreDNS. This can be configured by maintaining a Corefile (which is CoreDNS'
   configuration file.  It defines:
@@ -373,11 +381,22 @@ kubectl -n kube-system get svc kube-dns -o yaml
     - which plugins are loaded in a server
 - In Kubernetes, you modify the ConfigMap for the CoreDNS Corefile to change how
   DNS service discovery behaves for the cluster.
-- To view/modify the ConfigMap:
 
-```
-kubectl -n kube-system get configmap coredns -o yaml
-```
+`kubectl get pods -n kube-system`
+- Create a simple pod to use as a test environment: `kubectl apply -f
+https://k8s.io/examples/admin/dns/dnsutils.yaml`
+- Execute an 'nslookup' to see if DNS is working correctly: `kubectl exec -it
+  dnsutils -- nslookup kubernetes.default`
+- If nslookup fails, check 'resolv.conf': `kubectl exec -ti dnsutils -- cat
+  /etc/resolv.conf`
+- Check if the DNS pods are running: `kubectl get pods -n kube-system -l
+  k8s-app=kube-dns`
+- Use 'kubectl logs' to see logs for the DNS containers: `kubectl logs -n
+  kube-system -l k8s-app=kube-dns`
+- Verify that the DNS service is up: `kubectl get svc -n kube-system`
+- Verify that DNS endpoints are exposed by: `kubectl get ep kube-dns -n
+  kube-system`
+- To make a change to the configmap: `kubectl edit cm -n kube-system coredns`
 
 
 # **6.  Choose an appropriate container network interface plugin**
@@ -437,12 +456,11 @@ kubectl -n kube-system get configmap coredns -o yaml
 
 - kubelet looks at /etc/cni/net.d to find CNI plugins by default.
 
-```
-$ systemctl status kubelet.service
-$ ps -aux | grep kubelet
-$ ls /etc/cni/net.d/
-$ ls /opt/cni/bin
-``` 
+`systemctl status kubelet.service`
+`ps -aux | grep kubelet`
+`ls /etc/cni/net.d/`
+`ls /opt/cni/bin`
+ 
 
 
 
