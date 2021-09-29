@@ -462,5 +462,8 @@ https://k8s.io/examples/admin/dns/dnsutils.yaml`
 `ls /opt/cni/bin`
  
 
+******************************************
 
-
+Weave seems to be recommended.
+kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl
+version | base64 | tr -d '\n')"
