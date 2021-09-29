@@ -478,6 +478,10 @@ ETCDCTL_API=3 etcdctl --write-out=table snapshot status /tmp/etcd-backup.db"
 +----------+----------+------------+------------+
 ```
 
+- At this point, you could run a new test pod.  Once you perform a restore, this
+  test pod should no longer be running as it was created after the snapshot was
+  taken: `kubectl run testpod --image=nginx -- /bin/sh -c 'sleep 3600'`
+
 Step 3: restore snapshot db to a specific directory using the '--data-dir'
 argument: `
 ```yaml
@@ -511,6 +515,8 @@ etcdctl snapshot restore /tmp/etcd-backup.db \
 - it will take a minute or two for etcd and the api-server restart/reconnect.  
 - you should **not** see your test pod (created after snapshot taken).
 - if you revert the hostPath change back to /var/lib/etcd you should see the
-  test pod created.
-- you may have to restart kubelet and docker (system daemon reload && systemctl
-  restart docker && systemctl restart kubelet).
+  test pod created earlier.
+- you may have to restart kubelet and docker:
+  - `system daemon reload` 
+  - `systemctl restart docker`
+  - `systemctl restart kubelet`
