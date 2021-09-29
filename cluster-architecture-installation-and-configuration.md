@@ -413,10 +413,6 @@ sudo systemctl restart kubelet
   '/var/lib/kubelet/config.yaml': `staticPodPath=/etc/kubernetes/manifests`.
   There you should find the 'etcd.yaml' file.
 
-- Find and note the data directory that etcd is using: `grep -i data-dir
-  /etc/kubernetes/manifests/etcd.yaml`. Output should be similar to: `-
-  --data-dir=/var/lib/etcd`. This will be important later when restoring.
-
 - Locate the etcd pods on the control plane node: `kubectl get pods -A | grep etcd`
 
 - You can interact with etcd either from the control node, or by using etcdctl
