@@ -5,7 +5,7 @@
 | 3.  manage a highly-available kubernetes cluster                       |
 | 4.  provision underlying infrastructure to deploy a kubernetes cluster |
 | 5.  perform a version upgrade on a kubernetes cluster using kubeadm    |
-| 6.  [implement etcd backup and restore](# 6. implement etcd backup and restore)                                |
+| 6.  [implement etcd backup and restore](#6-implement-etcd-backup-and-restore)|
 
 # **1. manage role based access control (rbac)**
 
