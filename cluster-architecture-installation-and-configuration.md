@@ -405,12 +405,13 @@ sudo systemctl restart kubelet
   snapshot.
 
 ### built-in snapshot method:
-- Restore steps will depend on how etcd is deployed i.e. stacked etcd service
-  or external (running as a daemon) or as a static pod.  In this case, backing
-  up and restoring etcd which is running as a static pod.
+- Restore steps will depend on how etcd is deployed i.e. whether it has been set
+  up as a stacked etcd service, as an external service (running as a daemon), or
+  as a static pod.  In this case, we are backing up and restoring etcd which is running as a static pod.
 
 - Find the 'staticPodPath'. It can be found in the kubelet config file at
-  '/var/lib/kubelet/config.yaml': `staticPodPath=/etc/kubernetes/manifests`
+  '/var/lib/kubelet/config.yaml': `staticPodPath=/etc/kubernetes/manifests`.
+  There you should find the 'etcd.yaml' file.
 
 - Find and note the data directory that etcd is using: `grep -i data-dir
   /etc/kubernetes/manifests/etcd.yaml`. Output should be similar to: `-
@@ -419,9 +420,9 @@ sudo systemctl restart kubelet
 - Locate the etcd pods on the control plane node: `kubectl get pods -A | grep etcd`
 
 - You can interact with etcd either from the control node, or by using etcdctl
-  from inside an etcd Pod:
-`apt install etcd-client` if not available on the main node.
-`kubectl -n kube-system exec -it etcd-<Tab> -- sh -c "<commands here>"` if using
+  in the container inside an etcd Pod:
+  - `apt install etcd-client` if not available on the main node.
+  - `kubectl -n kube-system exec -it etcd-<Tab> -- sh -c "<commands here>"` if using
 the etcd client on the etcd pod itself.
 
     - `etcdctl -h`  #<-- view options and arguments available to ectdctl
@@ -430,10 +431,7 @@ the etcd client on the etcd pod itself.
 - In order to take a snapshot, you need to authenticate via certificates (if
   --client-cert-auth is set to true in /etc/kubernetes/manifests/etcd.yaml).  Check
   the configuration file on the control plane node for the 3 required files
-  (trusted-ca-file, cert-file, and key-file).
-`cat /etc/kubernetes/manifests/etcd.yaml`
-
-- These files can be viewed at: `/etc/kubernetes/pki/etcd`
+  (trusted-ca-file, cert-file, and key-file): `cat /etc/kubernetes/manifests/etcd.yaml`
 
 - To check the health of etcd (checking from the control node):
 
@@ -483,7 +481,18 @@ ETCDCTL_API=3 etcdctl --write-out=table snapshot status /tmp/etcd-backup.db"
   taken: `kubectl run testpod --image=nginx -- /bin/sh -c 'sleep 3600'`
 
 Step 3: restore snapshot db to a specific directory using the '--data-dir'
-argument: `
+argument. The data directory that etcd is using can be found by: `grep -i
+data-dir /etc/kubernetes/manifests/etcd.yaml`. Output should be similar to: `-
+--data-dir=/var/lib/etcd`. In the restore, we will set the '--data-dir' to a new
+directory (you don't need to create this, it will be created for you). A number
+of other commands are issued (most of which are copied from the etcd.yaml
+manifest).
+   - --name ip-172.18.3.48 #<-- 
+   - --initial-advertise-peer-urls=https://[IP]:2380 #<-- 
+   - --initial-cluster=ip-172-31-5-141=https://[IP]:2380 #<-- 
+   - --initial-cluster-token=etcd-cluster-1  #<-- 
+   - --skip-hash-check=true #<-- 
+
 ```yaml
 export ETCDCTL_API=3 \
 etcdctl snapshot restore /tmp/etcd-backup.db \
@@ -495,7 +504,7 @@ etcdctl snapshot restore /tmp/etcd-backup.db \
 --skip-hash-check=true 
 ```
 
-- you should see out put similar to:
+- you should see out put similar to (if doing so from the control node):
 ```
 2021-09-28 10:05:25.730702 I | mvcc: restore compact to 113090
 2021-09-28 10:05:25.737697 I | etcdserver/membership: added member
@@ -503,7 +512,7 @@ etcdctl snapshot restore /tmp/etcd-backup.db \
 ```
 
 - now tell etcd to use that directory by updating
-  `/etc/kubernetes/manifests/etcd.yamli` and update the hostPath for etcd-data:
+  `/etc/kubernetes/manifests/etcd.yaml` and update the hostPath for etcd-data:
 
 ```yaml
   volumes:
