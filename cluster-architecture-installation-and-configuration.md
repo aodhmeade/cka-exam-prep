@@ -406,8 +406,8 @@ sudo systemctl restart kubelet
 
 ### built-in snapshot method:
 - Restore steps will depend on how etcd is deployed i.e. stacked etcd service
-  or external (running as a daemon) or as a static pod.  In this case, restoring a static pod
-  etcd service.
+  or external (running as a daemon) or as a static pod.  In this case, backing
+  up and restoring etcd which is running as a static pod.
 
 - Find the 'staticPodPath'. It can be found in the kubelet config file at
   '/var/lib/kubelet/config.yaml': `staticPodPath=/etc/kubernetes/manifests`
@@ -416,7 +416,7 @@ sudo systemctl restart kubelet
   /etc/kubernetes/manifests/etcd.yaml`. Output should be similar to: `-
   --data-dir=/var/lib/etcd`. This will be important later when restoring.
 
-- Firstly, locate the etcd pods on the control plane node: `kubectl get pods -A | grep etcd`
+- Locate the etcd pods on the control plane node: `kubectl get pods -A | grep etcd`
 
 - You can interact with etcd either from the control node, or by using etcdctl
   from inside an etcd Pod:
@@ -424,8 +424,8 @@ sudo systemctl restart kubelet
 `kubectl -n kube-system exec -it etcd-<Tab> -- sh -c "<commands here>"` if using
 the etcd client on the etcd pod itself.
 
-`etcdctl -h`  #<-- view options and arguments available to ectdctl
-`etcdctl version`  #<-- to get version
+    - `etcdctl -h`  #<-- view options and arguments available to ectdctl
+    - `etcdctl version`  #<-- to get version
 
 - In order to take a snapshot, you need to authenticate via certificates (if
   --client-cert-auth is set to true in /etc/kubernetes/manifests/etcd.yaml).  Check
@@ -489,6 +489,7 @@ etcdctl snapshot restore /tmp/etcd-backup.db \
 --initial-cluster=ip-172-31-5-141=https://[IP]:2380 \
 --initial-cluster-token=etcd-cluster-1 \
 --skip-hash-check=true 
+```
 
 - you should see out put similar to:
 ```
@@ -499,6 +500,7 @@ etcdctl snapshot restore /tmp/etcd-backup.db \
 
 - now tell etcd to use that directory by updating
   `/etc/kubernetes/manifests/etcd.yamli` and update the hostPath for etcd-data:
+
 ```yaml
   volumes:
   - hostPath:
