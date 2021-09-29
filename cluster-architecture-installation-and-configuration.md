@@ -374,7 +374,7 @@ upgrading your kubelets if you haven't already done so.
 `kubectl get nodes`
 
 
-#6-implement-etcd-backup-and-restore
+# 6 implement etcd backup and restore
 
 - [https://etcd.io/]
 - [https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/#backing-up-an-etcd-cluster]
