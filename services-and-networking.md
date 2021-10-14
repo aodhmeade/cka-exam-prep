@@ -375,9 +375,9 @@ spec:
   the container.
 - CoreDNS is modular and pluggable - each plugin adds new functionality to
   CoreDNS. This can be configured by maintaining a Corefile (which is CoreDNS'
-  configuration file.  It defines:
+  configuration file).  It defines:
     - what servers listen on what ports and which protocol
-    - for which zone each servier is authoritative
+    - for which zone each server is authoritative
     - which plugins are loaded in a server
 - In Kubernetes, you modify the ConfigMap for the CoreDNS Corefile to change how
   DNS service discovery behaves for the cluster.
@@ -467,3 +467,4 @@ https://k8s.io/examples/admin/dns/dnsutils.yaml`
 Weave seems to be recommended.
 kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl
 version | base64 | tr -d '\n')"
+`wget https://docs.projectcalico.org/manifests/calico.yaml`
