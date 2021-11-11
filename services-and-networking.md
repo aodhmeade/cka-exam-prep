@@ -1,11 +1,13 @@
 | **Services and Networking  20%**                                             |
 |------------------------------------------------------------------------------|
-| 1.  Understand host networking configuration on the cluster nodes            |
-| 2.  Understand connectivity between Pods                                     |
-| 3.  Understand ClusterIP, NodePort, LoadBalancer service types and endpoints |
-| 4.  Know how to use Ingress controllers and Ingress resources                |
-| 5.  Know how to configure and use CoreDNS                                    |
-| 6.  Choose an appropriate container network interface plugin                 |
+| 1. [Understand host networking configuration on the cluster nodes](#1.
+Understand host networking configuration on the cluster nodes) |
+| 2. [Understand connectivity between Pods](#2.-Understand connectivity between Pods) |
+| 3. [Understand ClusterIP, NodePort, LoadBalancer service types and
+endpoints](#3.-Understand ClusterIP, NodePort, LoadBalancer service types and endpoints) |
+| 4. [Know how to use Ingress controllers and Ingress resources](#4.-Know how to use Ingress controllers and Ingress resources) |
+| 5. [Know how to configure and use CoreDNS](#5.-Know how to configure and use CoreDNS) |
+| 6. [Choose an appropriate container network interface plugin](#6.-Choose an appropriate container network interface plugin) |
 
 - [https://cloud.google.com/kubernetes-engine/docs/concepts/network-overview]
 - [https://github.com/IBM/kubernetes-networking/blob/master/pdf/KubernetesNetworking-Lecture.pdf]
@@ -64,7 +66,7 @@ each other's ports on 'localhost'.
 
 
 
-# **1. Understand host networking configuration on the cluster nodes**
+#1. Understand host networking configuration on the cluster nodes
 
 
 
@@ -76,7 +78,7 @@ each other's ports on 'localhost'.
 
 
 
-# **2.  Understand connectivity between Pods**
+#2. Understand connectivity between Pods
 
 - [https://kubernetes.io/docs/concepts/cluster-administration/networking/]
 - [https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/]
@@ -117,7 +119,7 @@ spec:
 `kubectl run test --image=busybox --rm -it --labels="access=true" -- sh`
 
 
-# **3.  Understand ClusterIP, NodePort, LoadBalancer service types and endpoints**
+#3. Understand ClusterIP, NodePort, LoadBalancer service types and endpoints
 
 [https://kubernetes.io/docs/concepts/services-networking/service/]   
 [https://cloud.google.com/kubernetes-engine/docs/concepts/service]
@@ -266,7 +268,7 @@ Notes:
 
 
 
-# **4.  Know how to use Ingress controllers and Ingress resources**      
+#4. Know how to use Ingress controllers and Ingress resources
 - [https://kubernetes.io/docs/concepts/services-networking/ingress/] 
 - [https://www.ibm.com/cloud/blog/kubernetes-ingress]
 
@@ -358,7 +360,7 @@ spec:
 `kubectl delete ingress <ingress-name>`
 
 
-# **5.  Know how to configure and use CoreDNS**
+#5. Know how to configure and use CoreDNS
 - [https://coredns.io/]
 - [https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/]
 - [https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/]
@@ -399,7 +401,7 @@ https://k8s.io/examples/admin/dns/dnsutils.yaml`
 - To make a change to the configmap: `kubectl edit cm -n kube-system coredns`
 
 
-# **6.  Choose an appropriate container network interface plugin**
+#6. Choose an appropriate container network interface plugin
 
 - [https://github.com/containernetworking/cni]
 - [https://www.redhat.com/sysadmin/cni-kubernetes]

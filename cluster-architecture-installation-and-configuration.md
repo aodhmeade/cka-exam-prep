@@ -1,18 +1,13 @@
 | **cluster architecture, installation and configuration   25%**         |
 |------------------------------------------------------------------------|
-| 1. [manage role based access control
-(rbac)](#1.-manage-role-based-access-control-rbac)]                            |
-| 2. [use kubeadm to install a basic
-cluster](#2.-use-kubeadm-to-install-a-basic-cluster)                             |
-| 3. [manage a highly-available kubernetes
-cluster](#3.manage-a-highly-available-kubernetes-cluster)                       |
-| 4. [provision underlying infrastructure to deploy a kubernetes
-cluster](#4.provision-underlying-infrastructure-to-deploy-a-kubernetes-cluster) |
-| 5. [perform a version upgrade on a kubernetes cluster using
-kubeadm](#5.perform-a-verison-upgrade-on-a-kubernetes-cluster-using-kubeadm)    |
+| 1. [manage role based access control(rbac)](#1.-manage-role-based-access-control-rbac)]                            |
+| 2. [use kubeadm to install a basic cluster](#2.-use-kubeadm-to-install-a-basic-cluster)                             |
+| 3. [manage a highly-available kubernetes cluster](#3.-manage-a-highly-available-kubernetes-cluster)                       |
+| 4. [provision underlying infrastructure to deploy a kubernetes cluster](#4.-provision-underlying-infrastructure-to-deploy-a-kubernetes-cluster) |
+| 5. [perform a version upgrade on a kubernetes cluster using kubeadm](#5.-perform-a-verison-upgrade-on-a-kubernetes-cluster-using-kubeadm)    |
 | 6. [implement etcd backup and restore](#6.-implement-etcd-backup-and-restore)|
 
-# 1. manage role based access control-rbac
+#1. manage role based access control-rbac
 
 - [https://kubernetes.io/docs/reference/access-authn-authz/rbac/]
 - [https://docs.bitnami.com/tutorials/configure-rbac-in-your-kubernetes-cluster/]
@@ -94,7 +89,7 @@ roleref:
 
 - to test the rbac setup you can use `kubectl auth can-i`.  run `kubectl auth can-i -h` to see some examples.  
 
-# 2. use kubeadm to install a basic cluster
+#2. use kubeadm to install a basic cluster
 
 - [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/]
 - [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/]
@@ -218,7 +213,7 @@ command. on the cp node:
 
 - to verify if node has joined, run this on the cp: `kubectl get nodes`.
 
-# 3. manage a highly-available kubernetes cluster
+#3. manage a highly-available kubernetes cluster
 
 - [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/ha-topology/]
 - [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/]
@@ -277,7 +272,7 @@ openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin
 
 - view the status using etcdctl
 
-# 4. provision underlying infrastructure to deploy a kubernetes cluster
+#4. provision underlying infrastructure to deploy a kubernetes cluster
 
 - cloud, multi-cloud, on-premises, hybrid, sbc's, etc., combinaton thereof.
 - possibly not tested in the exam ... review
@@ -287,7 +282,7 @@ openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin
 - for critical workloads to run on a production-grade set up see
   [https://kubernetes.io/docs/setup/production-environment/]
 
-# 5.  perform a version upgrade on a kubernetes cluster using kubeadm
+#5.  perform a version upgrade on a kubernetes cluster using kubeadm
 - [https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/]
 
 - if you build your cluster with kubeadm, you also have the option to upgrade
