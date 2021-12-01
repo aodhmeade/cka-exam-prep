@@ -1,19 +1,20 @@
-| **Troubleshooting 30%**                   |   |
-|--------------------------------------------|---|
-| 1.  Evaluate cluster and node logging      |   |
-| 2.  Understand how to monitor applications |   |
-| 3.  Manage container stdout & stderr logs  |   |
-| 4.  Troubleshoot application failure       |   |
-| 5.  Troubleshoot cluster component failure |   |
-| 6.  Troubleshoot networking                |   |
+| **Troubleshooting 30%**                   |   
+|--------------------------------------------|
+| 1.  Evaluate cluster and node logging      |  
+| 2.  Understand how to monitor applications |  
+| 3.  Manage container stdout & stderr logs  |  
+| 4.  Troubleshoot application failure       |  
+| 5.  Troubleshoot cluster component failure |  
+| 6.  Troubleshoot networking                |  
 
+#### Useful to understand the pod lifecycle as a starting point:
 [https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/]
 
-Some observations:
+#### An observation from kubernetes' practitioners:
 Kubernetes relies on API calls and is sensitive to network issues.  Therefore,
 standard linux tools (e.g. dig, tcpdump) can be very useful in troubleshooting your cluster.
 
-# **1.  Evaluate cluster and node logging**
+# 1.  Evaluate cluster and node logging
 https://kubernetes.io/docs/concepts/cluster-administration/logging/
 
 ### Node level logging architecture:
@@ -58,8 +59,13 @@ https://kubernetes.io/docs/concepts/cluster-administration/logging/
 #### streaming sidecar container and sidecar container with a logging agent:
 https://kubernetes.io/docs/concepts/cluster-administration/logging/
 
+- a sidecar container can provide some additional help/assistance to the main
+  application container.  Where this construct sees a lot of use is in the
+  provision of logging capabilities.
 
-# **2.  Understand how to monitor applications**
+# 2.  Understand how to monitor applications
+- if your container image includes debugging utilities, you can run commands
+  inside a container with `kubectl exec`.
 
 `kubectl exec --stdin --tty <pod-name> -- /bin/bash` if only one container
 running
@@ -68,7 +74,8 @@ running
 has more than one container. Note: the short options -i and -t are the same as
 the long options --stdin and --tty.
 
-### ephemeral container
+- to get container count on a node, run: `sudo docker ps | wc -l`
+
 #### debugging with an ephemeral debug container
 - https://kubernetes.io/docs/tasks/debug-application-cluster/debug-running-pod/#ephemeral-container-example
 
@@ -140,20 +147,20 @@ distroless images.
 - this is multiplied with `periodSeconds` to work out the time allowed before a
   startup failure should be reported.
 
-# **3.  Manage container stdout & stderr logs**
+# 3.  Manage container stdout & stderr logs
 - container standard out can be seen via the 'kubectl logs' command.
 - for example, `kubectl -n <a-namespace> logs <pod-name>
 
 
+# 4.  Troubleshoot application failure
 
-# **4.  Troubleshoot application failure**
 - Inevitably, you will need to debug problems with your application.
 - First step is to check if a pod is running: `kubectl get pods`
 - If the Pod is not ready, use 'describe' to get more specific information from
   a pod. This provides information about the Pod as well as a list of events
   that describe the initialisation process which may show issues: `kubectl describe pod <pod-name>`
-- To get extra detail, pass the -o yaml output format flag to the kubectl get
-  pod command: `kubectl get pod <pod-name> -o yaml`
+- To get extra detail, pass the '-o yaml' output format flag to the 'kubectl
+  get' pod command: `kubectl get pod <pod-name> -o yaml`
 - To obtain the stdout & stderr logs from the containers in the pod (the level
   of detail will depend on how the application has been configured): `kubectl
   logs <pod-name>`. If more than one container in a Pod, `kubectl logs -f <pod-name> -c <containername> -n <namespace>`
@@ -168,9 +175,11 @@ Waiting: cannot start.
 ImagePullBackOff: image problem.
     - Try: checking image name is correct and is available.
 CrashLoopBackOff: error in the container that causes Pod to restart.
-    - Try: use 'describe' to try and ascertain problem, export spec and review
+    - Try: use 'describe' to try and ascertain problem, export spec and review.
 
-# **5.  Troubleshoot cluster component failure**
+- kubectl explain pods
+
+# 5.  Troubleshoot cluster component failure
 If you have ruled out your app as the root cause of the problem you are
 experiencing then you can troubleshoot your cluster components.  
 
@@ -224,7 +233,10 @@ or
 `sudo systemctl enable kubelet`
 `sudo systemctl start kubelet`
 
-# **6. Troubleshoot networking**
+- kubectl get componentstatus
+- kubectl config view
+
+# 6. Troubleshoot networking
 - [https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/]
 
 - first step is to check the service status, `kubectl get service`
@@ -235,44 +247,3 @@ or
 
 
 
-# Don't know what section to include this under yet ...
-
-### useful
-- kubectl explain pods
-- kubectl explain nodes
-
-
-### cluster
-- accessing cluster info
-- kubectl config view
-
-- authenticate and access api server using a proxy 
-- kubectl proxy --port=8080 &
-- the locate api with curl, wget, etc.
-- curl http://localhost:8080/api/
-
-
-[https://kubernetes.io/docs/tasks/administer-cluster/namespaces-walkthrough/]
-
-- a context in Kubernetes is a connection to a specific cluster (is a group of
-  access parameters).  Each contains a cluster, a user and a namespace.  The
-  current context is the cluser that is the default for kubectl - all kubectl
-  commands run against that cluster.  Details are found in the .kubeconfig file.
-  The term only applies on the client side. 
-- kubectl config use-context my-cluster-name
-- kubectl config unset current-context
-- Note: mayhave to copy config file from /etc/kubernetes/admin.conf if things
-  get messed up.
-
-- to get container count on a node, run: `sudo docker ps | wc -l`
-
-- assuming metrics server is installed, you can find cpu and mem metrics by
-  running `kubectl top pod --all-namespaces`
-- to get the top nodes, run `kubectl top nodes`
-
-- kubectl get -n <namespace> pod <pod-name> -o jsonpath='{.metadata.uid}'
-
-- kubectl get componentstatus
-
-- kubectl delete rs <name> --cascade=orphan # delete rs but not the pods it
-  controls

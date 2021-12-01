@@ -7,9 +7,7 @@
 | 5.  Understand how resource limits can affect Pod scheduling |
 | 6.  Awareness of manifest management and common templating tools |
 
-
-
-# **1.  Understand deployments and how to perform rolling update and rollbacks**
+# 1.  Understand deployments and how to perform rolling update and rollbacks
 - [https://kubernetes.io/docs/concepts/workloads/controllers/deployment/]
 
 ### Deployments
@@ -18,7 +16,7 @@
 - The following is an example of a Deployment.  When applied it will create a
   'ReplicaSet' to bring up 3 nginx Pods:
 
-```
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -42,16 +40,11 @@ spec:
         - containerPort:80
 ```
 
-- To create the above deployment, run the following command:
-```
-kubectl apply -f https://k8s.io/examples/controllers/nginx-deployment.yaml
-```
-
-- Run 'kubectl get deployments', to check if the Deployment was created.
-- To see the ReplicaSet created by the Deployment, run 'kubectl get rs'.
-- To see the Pods, run 'kubectl get pods'.
-- To see the labels automatically generated for each Pod, run 'kubectl get pods
-  --show-labels'.
+- To create the above deployment, run the following command: `kubectl apply -f https://k8s.io/examples/controllers/nginx-deployment.yaml`
+- Run `kubectl get deployments`, to check if the Deployment was created.
+- To see the ReplicaSet created by the Deployment, run `kubectl get rs`.
+- To see the Pods, run `kubectl get pods`.
+- To see the labels automatically generated for each Pod, run `kubectl get pods --show-labels`.
 
 ### Rollouts and Rollbacks
 - A deployment's rollout is triggered if and only if the deployment's Pod
@@ -59,9 +52,10 @@ kubectl apply -f https://k8s.io/examples/controllers/nginx-deployment.yaml
   images of the template are updated). Other updates, such as scaling requests
   do not trigger a rollout.
 
-- Update the version of the nginx image to 1.16.1
+- Declaritively: update the version of the nginx image to 1.16.1 by editing the
+  file.
 
-```
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -85,14 +79,9 @@ spec:
         - containerPort:80
 ```
 
-- Method 1: declaratively
-update the file manually.
+- imperatively: `kubectl deployment nginx-deployment set image nginx=nginx:1.16.1`
 
-Method 2: imperatively
-- 'kubectl --record deployment.apps/nginx-deployment set image deployment.v1.apps/nginx-deployment nginx=nginx:1.16.1'
-
-- To see the rollout status, run 'kubectl rollout status
-  deployment/nginx-deployment' 
+- To see the rollout status, run `kubectl rollout status deployment nginx-deployment' 
 
 - Deployment ensures that only a certain number of Pods are down while they are
   being updated. By default, it ensures that at least 75% of the desired number
@@ -106,22 +95,17 @@ Method 2: imperatively
 
 
 Rollback
-- To check the revisions of a Deployment, 'kubectl rollout history
-  deployment.v1.apps/nginx-deployment'.
-- To see a specific revision, run 'kubectl rollout history
-  deployment.v1.apps/nginx-deployment --revision=2'.
+- To check the revisions of a Deployment, 'kubectl rollout history deployment nginx-deployment'.
+- To see a specific revision, run 'kubectl rollout history deployment nginx-deployment --revision=2'.
 - To undo the current rollout and rollback to the previous revision run,
-  'kubectl rollout undo deployment.v1.apps/nginx-deployment'
-- To rollback to a specific revision:
+  'kubectl rollout undo deployment nginx-deployment'
+- To rollback to a specific revision: `kubectl rollout undo deploy nginx-deployment --to-revision=1`
+- Note: 'deploy' can be used as shorthand for 'deployment'.
 
-```
-kubectl rollout undo deploy/nginx-deployment --to-revision=1
-```
-
-# **2.  Use ConfigMaps and Secrets to configure applications**
+# 2.  Use ConfigMaps and Secrets to configure applications
 
 ### ConfigMaps
-
+Sources:
 - [https://kubernetes.io/docs/concepts/configuration/configmap/] 
 - [https://kubernetes.io/docs/concepts/storage/volumes/]
 
@@ -156,10 +140,7 @@ kubectl rollout undo deploy/nginx-deployment --to-revision=1
 - 3 ways a ConfigMap can consume data - from a file, from a directory of files
   or from a literal value.
 
-- Imperative: The basic syntax for creating a config map is:
-```
-kubectl create configmap [configmap-name] [attribute] [source]
-```
+- Imperative: The basic syntax for creating a config map is: `kubectl create configmap [configmap-name] [attribute] [source]`
 
 - Depending on the source the attribute will be: --from-file or --from-literal.
   The configmap-name you give is arbitrary.  
@@ -170,14 +151,13 @@ kubectl create configmap my-config-map-test --from-literal=website=kubernetes.io
 ```
 
 - To review the ConfigMap created, run 'kubectl describe configmap
-  my-config-map-test', or 'kubectl get configmaps my-config-map-test -o yaml'
+  my-config-map-test', or `kubectl get configmaps my-config-map-test -o yaml`
 
 - To refer to this ConfigMap, declare it in the Pod that will be using it.
   Multiple Pods can reference the same ConfigMap.
 
 - There are two ways to configure a Pod to use a specific ConfigMap: either as a
   mounted volume or by using environment variables.
-
 
 ### Secrets
 
@@ -199,9 +179,9 @@ kubectl create configmap my-config-map-test --from-literal=website=kubernetes.io
 
 - To use a Secret, a Pod needs to reference the Secret.  It can be used with a
   Pod in 3 ways:
-    as files in a volume mounted on one or more containers
-    as container environment variable
-    by the kubelet when pulling the images for the Pod
+    - as files in a volume mounted on one or more containers
+    - as container environment variable
+    - by the kubelet when pulling the images for the Pod
 
 - The name of the Secret must be a valid DNS subdomain name.
 
@@ -210,28 +190,24 @@ kubectl create configmap my-config-map-test --from-literal=website=kubernetes.io
 - There is no limit to the number of Secrets that can be used but there is a 1MB
   limit to their size.
 
-- To check for existing Secrets, run 'kubectl get secrets'.
+- To check for existing Secrets, run `kubectl get secrets`.
 
 ### Create a Secret using a configuration file (declaratively)
 
 - To store 2 strings in a Secret using the 'data' field, convert the strings to
-  base64 as follows:
+  base64 as follows: `echo -n 'admin' | base64`
 
-'echo -n 'admin' | base64'
+    - The output is similar to: 'YWRtaW4='
 
-- The output is similar to:
-'YWRtaW4='
+- And: 'echo -n '1f2d1e2e67df' | base64'
 
-'echo -n '1f2d1e2e67df' | base64'
-
-- The output is similar to:
-
-'MWYyZDFlMmU2N2Rm'
+    - The output is similar to: 'MWYyZDFlMmU2N2Rm'
 
 - Write a Secret file that looks like:
 
-```
-$ vim secret.yaml
+`$ vim secret.yaml`
+
+```yaml
 apiVersion: v1
 kind: Secret
 metadata:
@@ -242,23 +218,21 @@ data:
   password: MWYyZDFlMmU2N2Rm
 ```  
 
-- Now create the Secret using 'kubectl apply'
-'kubectl apply -f ./secret.yaml'
+- Now create the Secret using 'kubectl apply': `kubectl apply -f secret.yaml`
 
 - 'kubectl get' and 'kubectl describe' can be used to check the Secret. They
   will avoid showing the contents of the Secret by default - to protect from
   accidental exposure, terminal log store.
 
-### Createing a Secrect using kubectl (Imperatively)
+### Creating a Secrect using kubectl (Imperatively)
 - Example scenario: Pod needs access to a database.  You need somewhere to store
   the db connection string.
 
-- Create a username and password and store them in files.
+- Create a username and password and store them in files:
 ```
 echo -n 'my-db-username' > ./username.txt
 echo -n 'my-db-password' > ./password.txt
-
-#### note: the -n flag stops a /n char being added to the file and being encoded too.
+#### note: the -n flag stops a newline (/n) char being added to the file and being encoded too.
 ```
 
 ```
@@ -270,7 +244,7 @@ kubectl create secret generic db-username-pass \
 - Note: the default key name is the filename. You can optionally set the key
   name using the '--from-file=[key=]source'.
 
-```
+```bash
 kubectl create secret generic db-username-pass \
 --from-file=username=./username.txt \
 --from-file=password=./password.txt
@@ -280,16 +254,16 @@ kubectl create secret generic db-username-pass \
   Note: special characters will be interpreted by your shell and require
   escaping.  Surrounding it with single quotes should be sufficient.
 
-```
+```bash
 kubectl create secret generic dev-db-secret \
   --from-literal=username=devuser \
     --from-literal=password='S!B\*d$zDsb='
 ```
-- To verify, run 'kubectl get secrets'
+- To verify, run `kubectl get secrets`
 
-- To analyse, run 'kubectl describe secret db-username'
+- To analyse, run `kubectl describe secret db-username`
 
-- 'kubectl get secret <secret-name> -o jsonpath='{.data}'
+- `kubectl get secret <secret-name> -o jsonpath='{.data}`
 
 - 'echo '<base64-encoded-value>' | base64 --decode'
 
@@ -304,8 +278,7 @@ kubectl create secret generic dev-db-secret \
   This mount path will contain a file whose name will be the key of the secret
   created with the 'kubectl create secret ...' step.
 
-```
-...
+```yaml
 spec:
   containers:
 - image: busybox
@@ -354,50 +327,36 @@ name: mysql
 - Immutable Secrets ... maybe not required for the exam ... 
 
 
+# 3.  Know how to scale applications
 
-# **3.  Know how to scale applications**
-
-- You can scale a Deployment by using the following command:
-```
-kubectl scale deployment nginx-deployment --replicas=10
-```
+- You can scale a Deployment by using the following command; and to the number
+  you require: `kubectl scale deployment nginx-deployment --replicas=10`
 - This command can be used to scale up and down.
 - This is ok if you are dealing with a small number of Pods.  If you are dealing
   with a large number and want this implemented in an automated fashion, you can
   use autoscaling.  ... will this come up in the exam ... check
-- You can use the following command:
-'kubectl autoscale deployment nginx-deployment --min=2 --max=5'
+- You can use the following command: 'kubectl autoscale deployment nginx-deployment --min=2 --max=5'
 
 
-# **4. Understand the primitives used to create robust, self-healing, application deployments**
+# 4. Understand the primitives used to create robust, self-healing, application deployments
 
-- Deployments, ReplicaSets, StatefulSets, DaemonSets, Jobs, CronJobs.
+- Deployments:
+- ReplicaSets:
+- StatefulSets:
+- DaemonSets:
+- Jobs:
+- CronJobs:
 
-
-
-### replicasets
-
-To delete a rs but not its pods,  `kubectl delete rs <name> --cascade=orphan`
-To isolate a pod from a replicaset, edit the label of the pod:
+Notes:
+- To delete a rs but not its pods: `kubectl delete rs <name> --cascade=orphan`
+- To isolate a pod from a replicaset, edit the label of the pod:
 ```yaml
 ...
   labels:
     system: isolatedPod #<-- change from label created by replicaset
 ```
 
-### daemonsets
-
-- create DaemonSet by using example on kubernetes.io or by create a deployment
-  and amending the yaml.
-
-
-
-
-
-
-
-
-# **5. Understand how resource limits can affect Pod scheduling**
+# 5. Understand how resource limits can affect Pod scheduling
 
 - [https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/]
 - [https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/]
@@ -467,7 +426,7 @@ To isolate a pod from a replicaset, edit the label of the pod:
     - 'kubectl create namespace demo' 
     - create yaml manifest file to limit resources:
 
-```
+```yaml
 apiVersion: v1
 kind: ResourceQuota
 metadata:
@@ -491,7 +450,7 @@ spec:
 
 - LimitRange example:
 
-```
+```yaml
 apiVersion: v1
 kind: LimitRange
 metadata:
@@ -522,7 +481,7 @@ kubectl -n <namespace-name> get LimitRange
 ### Configure a Pod quota for a namespace
 - the following manifest will limit the number of Pods that can run in a
   namespace to 2.
-```
+```yaml
 apiVersion: v1
 kind: ResourceQuota
 metadata:
@@ -585,7 +544,7 @@ spec
   key1=value1:NoSchedule-`. Note: the 'hyphen' at the end.
 
 
-# **6.  Awareness of manifest management and common templating tools**
+# 6.  Awareness of manifest management and common templating tools
 
 - [https://helm.sh/]
 - [https://github.com/helm/helm]
@@ -670,7 +629,6 @@ Copy the binary to your path: `mv linux-amd64/helm /usr/local/bin/`
 
 [https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/]
 
-- Kustomize is a tool to customise Kubernetes objects through a 'kustimization
+- Kustomize is a tool to customise Kubernetes objects through a 'kustomization
   file'.
-
 

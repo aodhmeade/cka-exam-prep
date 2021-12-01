@@ -1,19 +1,22 @@
 | **Services and Networking  20%**                                             |
 |------------------------------------------------------------------------------|
-| 1. [Understand host networking configuration on the cluster nodes](#1.
-Understand host networking configuration on the cluster nodes) |
-| 2. [Understand connectivity between Pods](#2.-Understand connectivity between Pods) |
-| 3. [Understand ClusterIP, NodePort, LoadBalancer service types and
-endpoints](#3.-Understand ClusterIP, NodePort, LoadBalancer service types and endpoints) |
-| 4. [Know how to use Ingress controllers and Ingress resources](#4.-Know how to use Ingress controllers and Ingress resources) |
-| 5. [Know how to configure and use CoreDNS](#5.-Know how to configure and use CoreDNS) |
-| 6. [Choose an appropriate container network interface plugin](#6.-Choose an appropriate container network interface plugin) |
+| 1. Understand host networking configuration on the cluster nodes   |
+| 2. Understand connectivity between Pods | 
+| 3. Understand ClusterIP, NodePort, LoadBalancer service types and
+endpoints  | 
+| 4. Know how to use Ingress controllers and Ingress resources  |
+| 5. Know how to configure and use CoreDNS  |
+| 6. Choose an appropriate container network interface plugin   |
 
+Some useful background reading/viewing:
 - [https://cloud.google.com/kubernetes-engine/docs/concepts/network-overview]
 - [https://github.com/IBM/kubernetes-networking/blob/master/pdf/KubernetesNetworking-Lecture.pdf]
 - [https://kubernetes.io/docs/concepts/cluster-administration/networking/]
 - [https://www.youtube.com/watch?v=InZVNuKY5GY&list=PLj6h78yzYM2O1wlsM-Ma-RYhfT5LKq0XC]
 - [https://www.youtube.com/watch?v=tq9ng_Nz9j8]
+
+
+# 1. Understand host networking configuration on the cluster nodes
 
 - Networking plays a central role in distributed systems and as such is central to
 Kubernetes. The Kubernetes network model relies heavily on IP addresses. Every
@@ -33,11 +36,9 @@ constraints:
     3. Pod-to-Service
     4. External-to-Service
 
-
 Note: Containers withing a pod share their network namespace (including IP
 address and MAC address).  This means that containers within a pod can reach
 each other's ports on 'localhost'.
-
 
 **Terms**
 - ClusterIP: The IP address assigned to a Service. In other documents, it may be
@@ -64,21 +65,7 @@ each other's ports on 'localhost'.
     - The targetPort is the port where the application is actually listening for
       traffic within the Pod.
 
-
-
-#1. Understand host networking configuration on the cluster nodes
-
-
-
-
-
-
-
-
-
-
-
-#2. Understand connectivity between Pods
+# 2. Understand connectivity between Pods
 
 - [https://kubernetes.io/docs/concepts/cluster-administration/networking/]
 - [https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/]
@@ -119,7 +106,7 @@ spec:
 `kubectl run test --image=busybox --rm -it --labels="access=true" -- sh`
 
 
-#3. Understand ClusterIP, NodePort, LoadBalancer service types and endpoints
+# 3. Understand ClusterIP, NodePort, LoadBalancer service types and endpoints
 
 [https://kubernetes.io/docs/concepts/services-networking/service/]   
 [https://cloud.google.com/kubernetes-engine/docs/concepts/service]
@@ -166,9 +153,10 @@ NodePort has a cluster IP address.
 The LoadBalancer type is an extension of the NodePort type.  So a Service of
 type LoadBalancer has a cluster IP address and one or more nodePort values.
 
-- ClusterIP Service manifest example:
+- **ClusterIP** Service manifest example.  Create using 'kubectl apply -f
+  <name-of-manifest-file>'. After creation, use `kubectl get svc` to see the stable IP address.
 
-```
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -183,9 +171,6 @@ spec:
     targetPort: 8080
 ```
 
-- Create using 'kubectl apply -f <name-of-manifest-file>'. After creation, use
-  'kubectl get svc' to see the stable IP address.
-
 - Clients in the cluster call the Service by using the cluster IP address and
   the TCP port specified in the port field of the Service manifest. The request
   is forwarded to one of the member Pods on the TCP port specified in the
@@ -195,7 +180,8 @@ spec:
   on TCP port 8080. If there is no container listening on port 8080, clients
   will see a message like "Failed to connect" or "This site can't be reached".
 
-- **NodePort Service manifest example:**
+- **NodePort** Service manifest example. Create using `kubectl apply -f
+  <name-of-manifest-file>`.
 
 ```
 apiVersion: v1
@@ -216,12 +202,8 @@ spec:
   Service is then accessible by using the IP address of **any node** along with
   the nodePort value.
 
-- Create using 'kubectl apply -f <name-of-manifest-file>.  Use 'kubectl get
-  service -o yaml' to view the specs and to see the nodePort value.  e.g. :
+- Use `kubectl get service -o yaml` to view the specs and to see the nodePort value.  e.g. :
 
-```
-
-```
 - External clients call the Service by using the external IP address of a node
   and the TCP port specified by the 'nodePort'. The request is forwarded to one
   of the member Pods on the TCP port specified by the 'targetPort' field.
@@ -232,11 +214,12 @@ spec:
     - use a node's IP address and 'nodePort'
 
 
-- **LoadBalancer Service manifest example:**
+- **LoadBalancer** Service manifest example. Exposes the Service externally
+  using a public cloud provider's load balancer. Create using `kubectl apply -f
+  <name-of-manifest-file>`.  Use `kubectl get service -o yaml` to view the specs
+  and to see the IP address.
 
-- Exposes the Service externally using a public cloud provider's load balancer.  
-
-```
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -250,14 +233,8 @@ spec:
     targetPort: 8080
 ```
 
-- Create using 'kubectl apply -f <name-of-manifest-file>.  Use 'kubectl get
-  service -o yaml' to view the specs and to see the IP address .  e.g. :
-```
-
-```
-
 - In the output, the network load balancer's IP address appears under
-  'status:loadBalancer:ingress:'.  The request is forwareded to one of the member Pods
+  'status:loadBalancer:ingress:'.  The request is forwarded to one of the member Pods
   on the TCP port specified by 'targetPort'.
 
 Notes:
@@ -267,8 +244,7 @@ Notes:
 - be familiar with using 'curl' to verify
 
 
-
-#4. Know how to use Ingress controllers and Ingress resources
+# 4. Know how to use Ingress controllers and Ingress resources
 - [https://kubernetes.io/docs/concepts/services-networking/ingress/] 
 - [https://www.ibm.com/cloud/blog/kubernetes-ingress]
 
@@ -360,7 +336,7 @@ spec:
 `kubectl delete ingress <ingress-name>`
 
 
-#5. Know how to configure and use CoreDNS
+# 5. Know how to configure and use CoreDNS
 - [https://coredns.io/]
 - [https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/]
 - [https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/]
@@ -401,7 +377,7 @@ https://k8s.io/examples/admin/dns/dnsutils.yaml`
 - To make a change to the configmap: `kubectl edit cm -n kube-system coredns`
 
 
-#6. Choose an appropriate container network interface plugin
+# 6. Choose an appropriate container network interface plugin
 
 - [https://github.com/containernetworking/cni]
 - [https://www.redhat.com/sysadmin/cni-kubernetes]
@@ -454,7 +430,7 @@ https://k8s.io/examples/admin/dns/dnsutils.yaml`
 
 - Get a CNI manifest through kubernetes.io
 
-- Apply with 'kubectl apply -f <name.yaml>'
+- Apply with `kubectl apply -f <name.yaml>`
 
 - kubelet looks at /etc/cni/net.d to find CNI plugins by default.
 
@@ -464,9 +440,3 @@ https://k8s.io/examples/admin/dns/dnsutils.yaml`
 `ls /opt/cni/bin`
  
 
-******************************************
-
-Weave seems to be recommended.
-kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl
-version | base64 | tr -d '\n')"
-`wget https://docs.projectcalico.org/manifests/calico.yaml`

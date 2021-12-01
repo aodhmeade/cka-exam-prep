@@ -1,13 +1,13 @@
 | **cluster architecture, installation and configuration   25%**         |
 |------------------------------------------------------------------------|
-| 1. [manage role based access control(rbac)](#1.-manage-role-based-access-control-rbac)]                            |
-| 2. [use kubeadm to install a basic cluster](#2.-use-kubeadm-to-install-a-basic-cluster)                             |
-| 3. [manage a highly-available kubernetes cluster](#3.-manage-a-highly-available-kubernetes-cluster)                       |
-| 4. [provision underlying infrastructure to deploy a kubernetes cluster](#4.-provision-underlying-infrastructure-to-deploy-a-kubernetes-cluster) |
-| 5. [perform a version upgrade on a kubernetes cluster using kubeadm](#5.-perform-a-verison-upgrade-on-a-kubernetes-cluster-using-kubeadm)    |
-| 6. [implement etcd backup and restore](#6.-implement-etcd-backup-and-restore)|
+| 1. manage role based access control(rbac)                      |
+| 2. use kubeadm to install a basic cluster |
+| 3. manage a highly-available kubernetes cluster   | 
+| 4. provision underlying infrastructure to deploy a kubernetes cluster  | 
+| 5. perform a version upgrade on a kubernetes cluster using kubeadm |
+| 6. implement etcd backup and restore  | 
 
-#1. manage role based access control-rbac
+# 1. manage role based access control-rbac
 
 - [https://kubernetes.io/docs/reference/access-authn-authz/rbac/]
 - [https://docs.bitnami.com/tutorials/configure-rbac-in-your-kubernetes-cluster/]
@@ -57,7 +57,8 @@ metadata:
       resources: ["pods"]
         verbs: ["get", "watch", "list"]
 ```
-- to create the above manifest, save the yaml and create as follows:
+- to create the above manifest, create and save the yaml as follows (yaml file
+  name is of your choosing):
 `kubectl create -f role-pod-reader-example.yaml`.
 
 example yaml manifest for a 'rolebinding':
@@ -76,10 +77,15 @@ roleref:
   name: pod-reader 
   apigroup: ""
 ```
-- to create the above manifest, save the yaml and create as follows:
+- to create the above manifest, create and save the yaml as follows (again, yaml
+  file name is of your choosing):
 `kubectl create -f rolebinding-pod-reader-example.yaml`.
 
-### roles can be created imperatively by using kubectl
+### alternatively roles can be created imperatively by using kubectl:
+
+- Note: **Getting comfortable with the imperative route will be beneficial from
+  the exam perspective in terms of saving time**
+
 - create a role named "pod-reader" that allows a user to perform get, watch and
   list on pods `kubectl create role pod-reader --verb=get --verb=list
   --verb=watch --resource=pods`.
@@ -89,7 +95,7 @@ roleref:
 
 - to test the rbac setup you can use `kubectl auth can-i`.  run `kubectl auth can-i -h` to see some examples.  
 
-#2. use kubeadm to install a basic cluster
+# 2. use kubeadm to install a basic cluster
 
 - [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/]
 - [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/]
@@ -114,8 +120,10 @@ roleref:
   e.g. going from local to the cloud, `kubectl config use-context
   name-of-new-context`.
 
-### installation steps for a basic cluster (one control plane node and one
-worker node). steps performed using two virtual machines running ubuntu 18.04 on gce.
+### installation steps for a basic cluster 
+#### one control plane node and one worker node. 
+
+- steps performed using two virtual machines running ubuntu 18.04 on gce.
 
 #### section 1 - install a control plane node
 - switch to root, `sudo -i`.
@@ -207,13 +215,14 @@ command. on the cp node:
 `kubeadm token list`
 `kubeadm token create --print-join-command`
 
-- use the above output on the worker node:
+- use the above output on the worker node (it will look something like this):
 
-`kubeadm join k8scp:6443 --token qsqg38.g9pohmf6pjdw0hkw --discovery-token-ca-cert-hash sha256:w43jlj2l4htofuu4tl4ry9340wgslkgf9732097448r028280220j`
+`kubeadm join k8scp:6443 --token qsqg38.g9pohmf6pjdw0hkw
+--discovery-token-ca-cert-hash sha256:w43jlj2l4htofuu4tl4ry9340wgslkgf973d6u34jljld32316b`
 
 - to verify if node has joined, run this on the cp: `kubectl get nodes`.
 
-#3. manage a highly-available kubernetes cluster
+# 3. manage a highly-available kubernetes cluster
 
 - [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/ha-topology/]
 - [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/]
@@ -272,17 +281,18 @@ openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin
 
 - view the status using etcdctl
 
-#4. provision underlying infrastructure to deploy a kubernetes cluster
+# 4. provision underlying infrastructure to deploy a kubernetes cluster
 
-- cloud, multi-cloud, on-premises, hybrid, sbc's, etc., combinaton thereof.
-- possibly not tested in the exam ... review
-- public cloud providers - managed kubernetes services - if you do not
-  want to manage the cluster yourself (e.g. elastic kubernetes service from aws
-  or google kubernetes engine from google).
+- there are a number of options availabe in terms of getting to grips with
+  setting up your underlying compute.  For example: cloud, multi-cloud,
+  on-premises, hybrid, local, sbc's (e.g. raspberry pi), etc., or combinaton thereof.
+- also via managed kubernetes services - if you do not want to manage the
+  cluster yourself (e.g. elastic kubernetes service from aws or google
+  kubernetes engine from google).
 - for critical workloads to run on a production-grade set up see
   [https://kubernetes.io/docs/setup/production-environment/]
 
-#5.  perform a version upgrade on a kubernetes cluster using kubeadm
+# 5. perform a version upgrade on a kubernetes cluster using kubeadm
 - [https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/]
 
 - if you build your cluster with kubeadm, you also have the option to upgrade
@@ -373,14 +383,15 @@ upgrading your kubelets if you haven't already done so.
 - verify that the control plane is in a ready status:
 `kubectl get nodes`
 
-
-#6. implement etcd backup and restore
+# 6. implement etcd backup and restore
 
 - [https://etcd.io/]
 - [https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/#backing-up-an-etcd-cluster]
 
-- etcd is an open source distributed key-value store used as kubernetes' backing store for all cluster
-  data (i.e. state data, metadata, config data). it provides a single source of truth about the status of the system at any given point in time. 
+- etcd is an open source distributed key-value store used as kubernetes' backing
+  store for all cluster data (i.e. state data, metadata, config data). it
+  provides a single source of truth about the status of the system at any given
+  point in time. 
 - etcd is built on the raft consensus algorithm to ensure data consistency.
 - kubernetes uses etcd's "watch" function to monitor cluster state data, compare
   against ideal state and to reconfigure itself when changes occur.  
@@ -397,7 +408,8 @@ upgrading your kubelets if you haven't already done so.
 ### built-in snapshot method:
 - Restore steps will depend on how etcd is deployed i.e. whether it has been set
   up as a stacked etcd service, as an external service (running as a daemon), or
-  as a static pod.  In this case, we are backing up and restoring etcd which is running as a static pod.
+  as a static pod.  In this case, we are backing up and restoring etcd which is
+  running as a static pod.
 
 - Find the 'staticPodPath'. It can be found in the kubelet config file at
   '/var/lib/kubelet/config.yaml': `staticPodPath=/etc/kubernetes/manifests`.
@@ -508,7 +520,7 @@ etcdctl snapshot restore /tmp/etcd-backup.db \
   name: etcd-data
 ```
 - it will take a minute or two for etcd and the api-server restart/reconnect.  
-- you should **not** see your test pod (created after snapshot taken).
+- you should **not** see your test pod (created after the snapshot taken).
 - if you revert the hostPath change back to /var/lib/etcd you should see the
   test pod created earlier.
 - you may have to restart kubelet and docker:

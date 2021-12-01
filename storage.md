@@ -5,6 +5,8 @@
 | 3.  Understand persistent volume claims primitive                         |
 | 4.  Know how to configure applications with persistent storage            |
 
+
+#### some back ground info
 - Container engines have traditionally not offered storage that outlives the
   container.  Containers in essence are considered transient.  Therefore you
   need a place to persistently store information.
@@ -32,34 +34,30 @@
   or network storage.  You can also set emptyDir to run off RAM (Kubernetes
   mounts a tmpfs in this instance).
 
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pd
+spec:
+  containers:
+  - image: k8s.gcr.io/test-webserver
+    name: test-container
+    volumeMounts:
+    - mountPath: /cache
+      name: cache-volume
+  volumes:
+  - name: cache-volume
+  emptyDir: {}
       ```
-      apiVersion: v1
-      kind: Pod
-      metadata:
-        name: test-pd
-      spec:
-        containers:
-        - image: k8s.gcr.io/test-webserver
-          name: test-container
-          volumeMounts:
-          - mountPath: /cache
-            name: cache-volume
-        volumes:
-        - name: cache-volume
-        emptyDir: {}
-      ```
-    - verify by opening an interactive terminal, locating and listing the
-      directory
+- verify by opening an interactive terminal, locating and listing the directory
 
-      ```
-      kubectl exec -it test-pd bash
-      
-      root@test-pd:/# ls
+`kubectl exec -it test-pd bash`
 
-      root@test-pd:/# ls cache/
-      root@test-pd:/# 
-      ```
-
+```bash
+root@test-pd:/# ls
+root@test-pd:/# ls cache/
+```
 
 - hostPath: volume type mounts a file or directory from the host node's
   filesystem into your pod.  Though generally not recommended, they can be used
@@ -68,28 +66,28 @@
   DirectoryOrCreate, Directory, FileOrCreate, File, Socket, CharDevice,
   BlockDevice.
 
-    ```
-    apiVersion: v1
-    kind: Pod
-    metadata:
-      name: test-pd
-    spec:
-      containers:
-      - image: k8s.gcr.io/test-webserver
-        name: test-container
-        volumeMounts:
-        - mountPath: /test-pd
-          name: test-volume
-      volumes:
-      - name: test-volume
-        hostPath:
-          # directory location on host
-          path: /data
-          # this field is optional
-          type: Directory
-   ``` 
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pd
+spec:
+  containers:
+  - image: k8s.gcr.io/test-webserver
+    name: test-container
+    volumeMounts:
+    - mountPath: /test-pd
+      name: test-volume
+  volumes:
+  - name: test-volume
+    hostPath:
+      # directory location on host
+      path: /data
+      # this field is optional
+      type: Directory
+``` 
 
-# **1.  Understand storage classes, persistent volumes**
+# 1.  Understand storage classes, persistent volumes
 
 - [https://kubernetes.io/docs/concepts/storage/persistent-volumes/]
 - [https://kubernetes.io/docs/concepts/storage/storage-classes/]
@@ -113,17 +111,17 @@
     - ConfigMap and Secret are considered local volumes but are not created via
       pv and pvc.
 
-```
-kubectl get pv
-kubectl get pvc
-```
+- to find and get information on a pv or pvc imperatively, use kubectl:
+`kubectl get pv` ... `kubectl describe pv <pv-name>`
+`kubectl get pvc` ... `kubectl describe pvc <pvc-name>`
 
 ## storage classes
 - Kubernetes can dynamically provision volumes for a pvc.  To enable this - it
   needs to know what type of storage is required.  It uses the concept of a
   StorageClass to complete this.
 - Example StorageClass:
-```
+
+```yaml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -140,8 +138,7 @@ parameters:
 - A StorageClass object will do nothing unless you specifically call it.
 
 
-
-# **2. Understand volume mode, access modes and reclaim policies for volumes**
+# 2. Understand volume mode, access modes and reclaim policies for volumes
 
 - [https://kubernetes.io/docs/concepts/storage/persistent-volumes/]
 
@@ -182,16 +179,20 @@ Currently, only NFS and HostPath support recycling. AWS EBS, GCE PD, Azure Disk,
 and Cinder volumes support deletion.
 
 
-# **3.  Understand persistent volume claims primitive**
+# 3.  Understand persistent volume claims primitive
 
-As per no.1
+[https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/]
 
+- The above page from the official documentation details how you configure a Pod
+  to use a PersistentVolumeClaim for storage.  You firstly create a
+  PersistentVolume which does not get associated with any Pod.  You then create
+  a PersistentVolumeClaim which should get automatically bound to a suitable
+  PersistentVolume.  Finally, you create a Pod that uses the
+  PersistentVolumeClaim for storage needs.
 
+# 4.  Know how to configure applications with persistent storage
 
-
-# **4.  Know how to configure applications with persistent storage**
-
-
+[https://kubernetes.io/docs/tasks/configure-pod-container/configure-volume-storage/]
 
 
 
